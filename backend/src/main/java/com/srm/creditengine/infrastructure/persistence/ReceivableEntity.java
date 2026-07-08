@@ -119,7 +119,7 @@ public class ReceivableEntity {
                 currency,
                 dueDate,
                 status,
-                0L,
+                null,
                 createdAt,
                 updatedAt
         );
