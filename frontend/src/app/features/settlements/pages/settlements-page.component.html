@@ -1,0 +1,51 @@
+<app-page-shell
+  title="Settlements"
+  subtitle="Skeleton for the analytical statement view. The next increment can plug filters and paginator events directly into the documented server-side query contract."
+  status="Server-side ready"
+>
+  <div class="feature-grid">
+    <mat-card appearance="outlined">
+      <h2>Statement strategy</h2>
+      <ul>
+        <li>Filter state stays in the feature layer.</li>
+        <li>Pagination requests the backend page instead of slicing in memory.</li>
+        <li>Historical amounts display persisted values with currency context.</li>
+      </ul>
+    </mat-card>
+
+    <mat-card appearance="outlined">
+      <h2>Preview table</h2>
+      <table mat-table [dataSource]="previewRows" class="preview-table">
+        <ng-container matColumnDef="assignor">
+          <th mat-header-cell *matHeaderCellDef>Assignor</th>
+          <td mat-cell *matCellDef="let row">{{ row.assignorName }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="paymentCurrency">
+          <th mat-header-cell *matHeaderCellDef>Payment currency</th>
+          <td mat-cell *matCellDef="let row">{{ row.paymentCurrency }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="status">
+          <th mat-header-cell *matHeaderCellDef>Status</th>
+          <td mat-cell *matCellDef="let row">{{ row.status }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="totalPaymentValue">
+          <th mat-header-cell *matHeaderCellDef>Total payment</th>
+          <td mat-cell *matCellDef="let row">
+            {{ row.totalPaymentValue | currencyAmount: row.paymentCurrency }}
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="settledAt">
+          <th mat-header-cell *matHeaderCellDef>Settled at</th>
+          <td mat-cell *matCellDef="let row">{{ row.settledAt | date: 'medium' }}</td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+      </table>
+    </mat-card>
+  </div>
+</app-page-shell>

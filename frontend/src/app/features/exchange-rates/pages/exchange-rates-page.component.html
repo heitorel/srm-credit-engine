@@ -1,0 +1,22 @@
+<app-page-shell
+  title="Exchange Rates"
+  subtitle="Minimal feature shell for exchange-rate registration and latest-rate lookup. Runtime API configuration is already wired, so the next form can go straight through typed services."
+  status="Runtime configured"
+>
+  <div class="feature-grid">
+    <mat-card appearance="outlined">
+      <h2>Endpoints prepared</h2>
+      <p><code>POST /api/exchange-rates</code> for manual registration.</p>
+      <p><code>GET /api/exchange-rates/latest</code> for exact pair lookup.</p>
+    </mat-card>
+
+    <mat-card appearance="outlined">
+      <h2>Guardrails carried by the scaffold</h2>
+      <ul>
+        <li>Typed request/response contracts</li>
+        <li>Centralized base URL composition</li>
+        <li>Structured backend error normalization</li>
+      </ul>
+    </mat-card>
+  </div>
+</app-page-shell>

@@ -1,0 +1,25 @@
+.feature-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.5rem;
+}
+
+mat-card {
+  padding: 1.5rem;
+  border-radius: 1.5rem;
+}
+
+h2 {
+  margin-top: 0;
+}
+
+p {
+  color: #4d657d;
+  line-height: 1.6;
+}
+
+@media (max-width: 900px) {
+  .feature-grid {
+    grid-template-columns: 1fr;
+  }
+}
