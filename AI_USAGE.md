@@ -68,6 +68,79 @@ The current AI usage includes:
 
 ## 5. Usage Log
 
+### 2026-07-08 - Settlement Statement Query
+
+**Tool used:** Codex
+
+**Prompt summary:**
+
+Execute `docs/prompts/07-statement-query.md`, limited to the backend settlement statement query feature, reusing the existing settlement persistence and shared error-handling structure while preserving database-level filtering, server-side pagination and persisted-value reads.
+
+**AI contribution:**
+
+The AI generated and adjusted:
+
+* the statement API request and response models for `GET /api/settlements/statement`, including a generic page response and settlement-level statement row response;
+* a thin `SettlementStatementController` dedicated to the analytical query route;
+* application-layer statement filtering, pagination and sort validation, including invalid date-range and pagination exceptions plus supported-status validation;
+* an infrastructure query repository using JPA Criteria with database-level predicates, an `EXISTS` subquery for `receivableType`, database pagination and deterministic sorting with `settledAt` plus settlement id as tie-breaker;
+* focused tests for statement validation and API behavior, including filters, pagination, deterministic ordering, empty results and structured errors.
+
+**Author review:**
+
+The generated work was reviewed against:
+
+* `AGENTS.md`;
+* `README.md`;
+* `AI_USAGE.md`;
+* `docs/specs/02-domain-glossary.md`;
+* `docs/specs/03-business-rules.md`;
+* `docs/specs/04-api-contract.md`;
+* `docs/specs/05-data-model.md`;
+* `docs/specs/06-architecture.md`;
+* `docs/specs/07-testing-strategy.md`;
+* `docs/specs/08-acceptance-criteria.md`;
+* `docs/adr/ADR-001-backend-stack.md`;
+* `docs/adr/ADR-002-database-choice.md`;
+* `docs/adr/ADR-003-money-precision.md`;
+* `docs/adr/ADR-004-architecture-style.md`;
+* `docs/adr/ADR-007-ai-assisted-development.md`.
+
+Special review attention was given to keeping the controller thin, ensuring the query reads persisted settlement totals instead of recalculating historical values, validating that filtering/pagination happen in the database and avoiding `double`/`float` in all statement-related code.
+
+**Accepted changes:**
+
+* implemented `GET /api/settlements/statement`;
+* added settlement statement request/response models aligned with the documented API contract;
+* kept statement orchestration in `application.statement` and query details in `infrastructure.query`;
+* validated date range, page, size, supported currencies, receivable type, settlement status and supported sort field;
+* implemented deterministic default sorting by `settledAt` with settlement id as tie-breaker;
+* used persisted settlement totals and header currencies only, without invoking `PricingEngine` or recalculating historical data;
+* added statement-specific tests covering filters, pagination and structured errors.
+
+**Rejected or corrected AI output:**
+
+* corrected the initial fixture strategy for integration tests by seeding deterministic statement rows directly in MySQL-compatible tables instead of depending on post-creation identifier rewrites that would have conflicted with foreign keys;
+* corrected Criteria API typing and result projection so UUID and timestamp conversion happens explicitly after the database query rather than relying on implicit constructor conversion;
+* corrected normalization logic so `sort` and `assignorDocument` are not uppercased accidentally while supported currency, receivable type and status filters still validate consistently;
+* avoided adding any pricing, settlement-write, frontend, migration or documentation changes outside the scope required by the prompt.
+
+**Tests or validation performed:**
+
+* `cd backend`
+* `.\mvnw.cmd test`
+* verified `BUILD SUCCESS`
+* verified the new statement service and controller tests compile and run
+* verified the Testcontainers-backed statement integration tests are present but were skipped locally because Docker was unavailable in the current execution environment
+* reviewed the repository query implementation to confirm predicates, `EXISTS` filtering and pagination are pushed to the database layer
+
+**Known limitations:**
+
+* because Docker was unavailable in this execution environment, the MySQL/Testcontainers-backed statement integration tests were skipped locally, so runtime verification of the database query path relied on compilation, the passing non-container suite and code review of the criteria-based repository;
+* the statement endpoint intentionally accepts only the documented safe sort field `settledAt`; if future requirements need additional sortable fields, that whitelist should be extended explicitly with matching validation and tests.
+
+---
+
 ### 2026-07-08 - Settlement Flow
 
 **Tool used:** Codex
