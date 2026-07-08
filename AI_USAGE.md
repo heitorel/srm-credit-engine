@@ -68,6 +68,76 @@ The current AI usage includes:
 
 ## 5. Usage Log
 
+### 2026-07-08 - Pricing Engine
+
+**Tool used:** Codex
+
+**Prompt summary:**
+
+Execute `docs/prompts/04-pricing-engine.md`, limited to the backend pricing engine and `POST /api/pricing/simulations`, reusing the existing exchange-rate module and respecting the documented pricing, validation, layering and testing rules.
+
+**AI contribution:**
+
+The AI generated and adjusted:
+
+* pricing domain value objects and helpers for `Money`, `Term` and centralized `FinancialMath` behavior;
+* Strategy Pattern components for `MERCANTILE_DUPLICATE` and `POST_DATED_CHECK`, plus the strategy resolver and pricing engine;
+* pricing-specific business exceptions for unsupported receivable type, invalid due date, missing exchange rate and missing base rate;
+* application orchestration for pricing simulation, base-rate resolution and exact-pair FX lookup reuse;
+* the `PricingSimulationController` plus request/response DTOs for `POST /api/pricing/simulations`;
+* domain, application and API tests covering spreads, resolver behavior, same-currency pricing, cross-currency conversion order, due-date validation, missing exchange rate, rounding behavior and non-persistence during simulation.
+
+**Author review:**
+
+The generated work was reviewed against:
+
+* `AGENTS.md`;
+* `README.md`;
+* `docs/specs/02-domain-glossary.md`;
+* `docs/specs/03-business-rules.md`;
+* `docs/specs/04-api-contract.md`;
+* `docs/specs/05-data-model.md`;
+* `docs/specs/06-architecture.md`;
+* `docs/specs/07-testing-strategy.md`;
+* `docs/specs/08-acceptance-criteria.md`;
+* `docs/adr/ADR-001-backend-stack.md`;
+* `docs/adr/ADR-003-money-precision.md`;
+* `docs/adr/ADR-004-architecture-style.md`;
+* `docs/adr/ADR-007-ai-assisted-development.md`.
+
+Special review attention was given to decimal precision, conversion order, controller thinness and the absence of settlement persistence in simulation.
+
+**Accepted changes:**
+
+* implemented `POST /api/pricing/simulations`;
+* kept financial calculation logic in domain/application layers instead of controllers;
+* used `BigDecimal`-based financial math with explicit scales and `HALF_UP` rounding;
+* enforced same-currency behavior without FX lookup;
+* enforced cross-currency behavior with exact-direction FX lookup and no silent inversion;
+* added focused tests for pricing strategies, pricing engine behavior, due-date rules, base-rate resolution and API validation/business errors.
+
+**Rejected or corrected AI output:**
+
+* corrected the documentation lookup step when an initially requested ADR filename did not exist in the repository, switching to the accepted ADR files that actually define backend stack, money precision, architecture style and AI workflow;
+* avoided using floating-point financial arithmetic or `Math.pow` in business code by isolating exponentiation inside the centralized financial math component;
+* avoided putting FX lookup, spread resolution or present value calculation inside the controller;
+* avoided introducing settlement creation or schema changes outside the prompt scope.
+
+**Tests or validation performed:**
+
+* `cd backend`
+* `.\mvnw.cmd test`
+* verified `BUILD SUCCESS`
+* verified the new pricing unit and application tests pass
+* verified the Testcontainers-backed API/integration tests remain present and were skipped locally because Docker was unavailable in the current execution environment
+
+**Known limitations:**
+
+* the Testcontainers-backed pricing API tests were not executed in this environment because Docker was unavailable, so the local validation relied on the passing unit/application suite and the existing conditional integration-test setup;
+* the current backend configuration still provides a default base rate through application properties, so the missing-fallback path is validated at unit level rather than through the runtime profile used in this environment.
+
+---
+
 ### 2026-07-08 - Currency Engine
 
 **Tool used:** Codex
