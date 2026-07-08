@@ -1,0 +1,23 @@
+<app-page-shell
+  title="Pricing Simulation"
+  subtitle="Base page for the receivable pricing workflow. This scaffold wires navigation, typed API integration points and room for a future reactive form without duplicating official backend calculations."
+  status="Scaffolded"
+>
+  <div class="feature-grid">
+    <mat-card appearance="outlined">
+      <h2>Planned operator flow</h2>
+      <mat-list role="list">
+        @for (item of integrationPoints; track item) {
+          <mat-list-item role="listitem">{{ item }}</mat-list-item>
+        }
+      </mat-list>
+    </mat-card>
+
+    <mat-card appearance="outlined">
+      <h2>Contract snapshot</h2>
+      <p><strong>Endpoint:</strong> <code>POST /api/pricing/simulations</code></p>
+      <p><strong>Critical rule:</strong> frontend sends inputs and renders backend results only.</p>
+      <p><strong>Next increment:</strong> reactive form, loading state and structured error panel.</p>
+    </mat-card>
+  </div>
+</app-page-shell>

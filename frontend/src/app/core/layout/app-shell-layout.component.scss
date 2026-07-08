@@ -1,0 +1,103 @@
+.shell {
+  min-height: 100vh;
+}
+
+.shell__toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  min-height: 5rem;
+  padding: 1rem clamp(1rem, 3vw, 2rem);
+  border-bottom: 1px solid rgba(23, 50, 77, 0.08);
+  background: rgba(248, 251, 255, 0.82);
+  backdrop-filter: blur(18px);
+}
+
+.shell__brand {
+  display: grid;
+  line-height: 1.2;
+}
+
+.shell__brand strong {
+  font-size: 1rem;
+}
+
+.shell__kicker,
+.shell__hero-kicker {
+  color: #426a93;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.shell__nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.shell__nav-link {
+  border-radius: 999px;
+}
+
+.shell__nav-link--active {
+  background: rgba(48, 120, 211, 0.1);
+}
+
+.shell__main {
+  display: grid;
+  gap: 2rem;
+  padding: 2rem clamp(1rem, 4vw, 3rem) 3rem;
+}
+
+.shell__hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(18rem, 0.8fr);
+  gap: 1.5rem;
+  align-items: stretch;
+}
+
+.shell__hero-copy,
+.shell__hero-card {
+  padding: 1.75rem;
+  border-radius: 1.75rem;
+  background: rgba(255, 255, 255, 0.78);
+  box-shadow: 0 24px 70px rgba(45, 78, 115, 0.08);
+}
+
+.shell__hero-copy h1 {
+  margin: 0.25rem 0 1rem;
+  max-width: 14ch;
+  font-size: clamp(2rem, 5vw, 3.6rem);
+  line-height: 1.05;
+}
+
+.shell__hero-copy p,
+.shell__hero-card li {
+  color: #4d657d;
+  line-height: 1.7;
+}
+
+.shell__hero-card h2 {
+  margin-top: 0;
+}
+
+.shell__hero-card ul {
+  margin: 0;
+  padding-left: 1.25rem;
+}
+
+@media (max-width: 960px) {
+  .shell__toolbar {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .shell__hero {
+    grid-template-columns: 1fr;
+  }
+}

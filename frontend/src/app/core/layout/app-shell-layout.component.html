@@ -1,0 +1,46 @@
+<div class="shell">
+  <mat-toolbar class="shell__toolbar">
+    <div class="shell__brand">
+      <span class="shell__kicker">SRM Credit Engine</span>
+      <strong>Angular operator scaffold</strong>
+    </div>
+
+    <nav class="shell__nav" aria-label="Primary">
+      @for (item of navigationItems; track item.route) {
+        <a
+          matButton
+          routerLinkActive="shell__nav-link--active"
+          class="shell__nav-link"
+          [routerLink]="item.route"
+        >
+          {{ item.label }}
+        </a>
+      }
+    </nav>
+  </mat-toolbar>
+
+  <main class="shell__main">
+    <section class="shell__hero">
+      <div class="shell__hero-copy">
+        <p class="shell__hero-kicker">Feature-oriented foundation</p>
+        <h1>Frontend scaffold aligned with the documented API and architecture.</h1>
+        <p>
+          The SPA is ready for Angular Material screens, typed HTTP services,
+          runtime API configuration and server-driven workflows.
+        </p>
+      </div>
+
+      <mat-card appearance="outlined" class="shell__hero-card">
+        <h2>Scaffold guarantees</h2>
+        <ul>
+          <li>Angular 22 standalone application structure</li>
+          <li>Runtime `ANGULAR_API_BASE_URL` loading</li>
+          <li>Core, shared, features and models folders</li>
+          <li>Production Dockerfile with Nginx static serving</li>
+        </ul>
+      </mat-card>
+    </section>
+
+    <router-outlet />
+  </main>
+</div>

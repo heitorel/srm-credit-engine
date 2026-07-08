@@ -1,0 +1,17 @@
+<section class="page-shell">
+  <header class="page-shell__header">
+    <div>
+      <p class="page-shell__eyebrow">Operator workspace</p>
+      <h1>{{ title() }}</h1>
+      <p class="page-shell__subtitle">{{ subtitle() }}</p>
+    </div>
+
+    <mat-chip-set>
+      <mat-chip>{{ status() }}</mat-chip>
+    </mat-chip-set>
+  </header>
+
+  <div class="page-shell__content">
+    <ng-content />
+  </div>
+</section>

@@ -68,6 +68,76 @@ The current AI usage includes:
 
 ## 5. Usage Log
 
+### 2026-07-08 - Frontend Scaffold
+
+**Tool used:** Codex
+
+**Prompt summary:**
+
+Execute `docs/prompts/08-frontend-scaffold.md`, limited to the Angular frontend foundation, respecting the documented frontend architecture, Angular 22 stack, Angular Material usage, runtime API configuration and Docker delivery constraints.
+
+**AI contribution:**
+
+The AI generated and adjusted:
+
+* the Angular 22 standalone application scaffold under `frontend/`;
+* the feature-oriented folder structure with `core`, `shared`, `features` and `models`;
+* Angular Material-based shell layout, navigation and feature placeholder pages;
+* typed API client/services and frontend models aligned with the documented backend contract;
+* runtime configuration loading for `ANGULAR_API_BASE_URL` using Angular application initialization;
+* frontend production Docker assets with a multi-stage `Dockerfile`, `nginx.conf` and runtime config injection script;
+* minimal frontend documentation updates and a passing build/test validation cycle.
+
+**Author review:**
+
+The generated work was reviewed against:
+
+* `AGENTS.md`;
+* `README.md`;
+* `AI_USAGE.md`;
+* `docs/specs/04-api-contract.md`;
+* `docs/specs/06-architecture.md`;
+* `docs/specs/08-acceptance-criteria.md`;
+* `docs/adr/ADR-005-frontend-stack.md`;
+* `docker-compose.yml`;
+* `.env.example`;
+* official Angular documentation for `ng new`, environment configuration and application initialization;
+* official Angular Material getting-started documentation.
+
+Special review attention was given to keeping the frontend free of official pricing logic, preserving server-side ownership of calculations, aligning the folder structure with the architecture spec, avoiding NgRx introduction and ensuring the Docker/runtime-config approach remained compatible with `ANGULAR_API_BASE_URL`.
+
+**Accepted changes:**
+
+* created the Angular 22 scaffold with standalone components and routing;
+* added Angular Material and a simple application shell with feature navigation;
+* added typed services for pricing simulation, settlement statement and exchange-rate flows without implementing financial formulas in the client;
+* implemented runtime config loading through `/assets/config/runtime-config.json`;
+* added production static-serving assets for Nginx and runtime environment substitution;
+* updated frontend-local run instructions and frontend-specific README guidance;
+* validated the scaffold with passing frontend build and unit-test commands.
+
+**Rejected or corrected AI output:**
+
+* corrected the initial HTTP query typing so typed statement filters can be passed to the shared API client without weakening feature models;
+* corrected standalone imports by marking the custom currency pipe as standalone and importing Angular date formatting explicitly where needed;
+* avoided implementing pricing forms, settlement filters, pagination behavior or exchange-rate business screens beyond the minimal shell/navigation scope required by the prompt;
+* avoided introducing client-side pricing calculations, fake exchange-rate logic, NgRx or backend/API contract changes outside the frontend scaffold scope.
+
+**Tests or validation performed:**
+
+* `cd frontend`
+* `npm run build`
+* `npm test -- --watch=false`
+* verified successful Angular production build output under `dist/srm-credit-engine-frontend/browser`
+* reviewed the generated Docker/Nginx runtime-config flow against the documented `ANGULAR_API_BASE_URL` expectation
+
+**Known limitations:**
+
+* the feature pages are intentionally scaffold placeholders and do not yet implement the full pricing simulation form, settlement grid filters/paginator or exchange-rate form workflows;
+* the Angular Material setup currently relies on the framework-compatible animations package used by the ecosystem today, even though Angular is steering new animations guidance toward native CSS-based patterns.
+
+---
+
 ### 2026-07-08 - Settlement Statement Query
 
 **Tool used:** Codex

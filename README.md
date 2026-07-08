@@ -332,7 +332,7 @@ A responsabilidade pelas decisoes, pelo codigo entregue e pela validacao das reg
 
 ## 13. Como Executar
 
-A execucao local completa sera documentada apos a implementacao dos modulos backend e frontend.
+A execucao local completa continua convergindo para `docker compose up --build`, mas o scaffold do frontend ja pode ser executado isoladamente.
 
 A expectativa final e permitir execucao com:
 
@@ -340,7 +340,26 @@ A expectativa final e permitir execucao com:
 docker compose up --build
 ```
 
-Tambem deve haver suporte a execucao separada de backend e frontend para desenvolvimento local.
+Para o frontend Angular 22:
+
+```bash
+cd frontend
+npm install
+npm start
+```
+
+Build de validacao do frontend:
+
+```bash
+cd frontend
+npm run build
+```
+
+O frontend usa `ANGULAR_API_BASE_URL` por runtime config e aponta por padrao para:
+
+```text
+http://localhost:8080/api
+```
 
 ## 14. Entrega Final Planejada
 
