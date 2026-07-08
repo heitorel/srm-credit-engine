@@ -141,6 +141,11 @@ Special review attention was given to transaction-boundary placement, settlement
 * the MySQL/Testcontainers-backed settlement integration tests were not executed in this environment because Docker was unavailable, so runtime validation of the new settlement flow relied on compilation, the passing non-container suite and static review of the settlement code path;
 * assignor reuse currently keys off the provided document when present; requests without a document create a new assignor record, which is acceptable for the current initial-scope settlement flow but may need refinement if a standalone assignor management workflow is introduced later.
 
+**Prompt planning note:**
+
+* although `docs/prompts/06-settlement-detail.md` remained documented as a separate planned increment, the actual implementation work for `GET /api/settlements/{id}`, persisted audit-snapshot reads, structured `404` handling and the historical-detail immutability test was completed during this settlement-flow increment;
+* a later validation pass confirmed that prompt 06 had already been satisfied by the code and tests produced here, so no additional backend code change was required when that prompt was revisited.
+
 ---
 
 ### 2026-07-08 - Pricing Engine
