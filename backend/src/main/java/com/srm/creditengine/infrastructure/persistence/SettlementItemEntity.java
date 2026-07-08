@@ -85,4 +85,153 @@ public class SettlementItemEntity {
 
     @Column(name = "created_at", nullable = false, columnDefinition = "DATETIME(6)")
     private LocalDateTime createdAt;
+
+    protected SettlementItemEntity() {
+    }
+
+    private SettlementItemEntity(
+            String id,
+            SettlementEntity settlement,
+            ReceivableEntity receivable,
+            String externalReference,
+            ReceivableTypeEntity receivableType,
+            BigDecimal faceValue,
+            CurrencyEntity sourceCurrency,
+            CurrencyEntity paymentCurrency,
+            BigDecimal baseRate,
+            BigDecimal spread,
+            BigDecimal termInMonths,
+            BigDecimal presentValueSource,
+            BigDecimal discountValue,
+            BigDecimal paymentValue,
+            BigDecimal exchangeRate,
+            LocalDateTime calculatedAt,
+            LocalDateTime createdAt
+    ) {
+        this.id = id;
+        this.settlement = settlement;
+        this.receivable = receivable;
+        this.externalReference = externalReference;
+        this.receivableType = receivableType;
+        this.faceValue = faceValue;
+        this.sourceCurrency = sourceCurrency;
+        this.paymentCurrency = paymentCurrency;
+        this.baseRate = baseRate;
+        this.spread = spread;
+        this.termInMonths = termInMonths;
+        this.presentValueSource = presentValueSource;
+        this.discountValue = discountValue;
+        this.paymentValue = paymentValue;
+        this.exchangeRate = exchangeRate;
+        this.calculatedAt = calculatedAt;
+        this.createdAt = createdAt;
+    }
+
+    public static SettlementItemEntity create(
+            String id,
+            SettlementEntity settlement,
+            ReceivableEntity receivable,
+            String externalReference,
+            ReceivableTypeEntity receivableType,
+            BigDecimal faceValue,
+            CurrencyEntity sourceCurrency,
+            CurrencyEntity paymentCurrency,
+            BigDecimal baseRate,
+            BigDecimal spread,
+            BigDecimal termInMonths,
+            BigDecimal presentValueSource,
+            BigDecimal discountValue,
+            BigDecimal paymentValue,
+            BigDecimal exchangeRate,
+            LocalDateTime calculatedAt,
+            LocalDateTime createdAt
+    ) {
+        return new SettlementItemEntity(
+                id,
+                settlement,
+                receivable,
+                externalReference,
+                receivableType,
+                faceValue,
+                sourceCurrency,
+                paymentCurrency,
+                baseRate,
+                spread,
+                termInMonths,
+                presentValueSource,
+                discountValue,
+                paymentValue,
+                exchangeRate,
+                calculatedAt,
+                createdAt
+        );
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public SettlementEntity getSettlement() {
+        return settlement;
+    }
+
+    public ReceivableEntity getReceivable() {
+        return receivable;
+    }
+
+    public String getExternalReference() {
+        return externalReference;
+    }
+
+    public ReceivableTypeEntity getReceivableType() {
+        return receivableType;
+    }
+
+    public BigDecimal getFaceValue() {
+        return faceValue;
+    }
+
+    public CurrencyEntity getSourceCurrency() {
+        return sourceCurrency;
+    }
+
+    public CurrencyEntity getPaymentCurrency() {
+        return paymentCurrency;
+    }
+
+    public BigDecimal getBaseRate() {
+        return baseRate;
+    }
+
+    public BigDecimal getSpread() {
+        return spread;
+    }
+
+    public BigDecimal getTermInMonths() {
+        return termInMonths;
+    }
+
+    public BigDecimal getPresentValueSource() {
+        return presentValueSource;
+    }
+
+    public BigDecimal getDiscountValue() {
+        return discountValue;
+    }
+
+    public BigDecimal getPaymentValue() {
+        return paymentValue;
+    }
+
+    public BigDecimal getExchangeRate() {
+        return exchangeRate;
+    }
+
+    public LocalDateTime getCalculatedAt() {
+        return calculatedAt;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
 }

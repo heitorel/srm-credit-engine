@@ -67,4 +67,121 @@ public class SettlementEntity {
 
     @Column(name = "updated_at", nullable = false, columnDefinition = "DATETIME(6)")
     private LocalDateTime updatedAt;
+
+    protected SettlementEntity() {
+    }
+
+    private SettlementEntity(
+            String id,
+            AssignorEntity assignor,
+            CurrencyEntity sourceCurrency,
+            CurrencyEntity paymentCurrency,
+            String status,
+            BigDecimal baseRate,
+            Integer itemCount,
+            BigDecimal totalFaceValue,
+            BigDecimal totalPresentValue,
+            BigDecimal totalPaymentValue,
+            LocalDateTime settledAt,
+            LocalDateTime createdAt,
+            LocalDateTime updatedAt
+    ) {
+        this.id = id;
+        this.assignor = assignor;
+        this.sourceCurrency = sourceCurrency;
+        this.paymentCurrency = paymentCurrency;
+        this.status = status;
+        this.baseRate = baseRate;
+        this.itemCount = itemCount;
+        this.totalFaceValue = totalFaceValue;
+        this.totalPresentValue = totalPresentValue;
+        this.totalPaymentValue = totalPaymentValue;
+        this.settledAt = settledAt;
+        this.createdAt = createdAt;
+        this.updatedAt = updatedAt;
+    }
+
+    public static SettlementEntity create(
+            String id,
+            AssignorEntity assignor,
+            CurrencyEntity sourceCurrency,
+            CurrencyEntity paymentCurrency,
+            String status,
+            BigDecimal baseRate,
+            Integer itemCount,
+            BigDecimal totalFaceValue,
+            BigDecimal totalPresentValue,
+            BigDecimal totalPaymentValue,
+            LocalDateTime settledAt,
+            LocalDateTime createdAt,
+            LocalDateTime updatedAt
+    ) {
+        return new SettlementEntity(
+                id,
+                assignor,
+                sourceCurrency,
+                paymentCurrency,
+                status,
+                baseRate,
+                itemCount,
+                totalFaceValue,
+                totalPresentValue,
+                totalPaymentValue,
+                settledAt,
+                createdAt,
+                updatedAt
+        );
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public AssignorEntity getAssignor() {
+        return assignor;
+    }
+
+    public CurrencyEntity getSourceCurrency() {
+        return sourceCurrency;
+    }
+
+    public CurrencyEntity getPaymentCurrency() {
+        return paymentCurrency;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public BigDecimal getBaseRate() {
+        return baseRate;
+    }
+
+    public Integer getItemCount() {
+        return itemCount;
+    }
+
+    public BigDecimal getTotalFaceValue() {
+        return totalFaceValue;
+    }
+
+    public BigDecimal getTotalPresentValue() {
+        return totalPresentValue;
+    }
+
+    public BigDecimal getTotalPaymentValue() {
+        return totalPaymentValue;
+    }
+
+    public LocalDateTime getSettledAt() {
+        return settledAt;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
 }

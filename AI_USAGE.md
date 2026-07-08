@@ -68,6 +68,81 @@ The current AI usage includes:
 
 ## 5. Usage Log
 
+### 2026-07-08 - Settlement Flow
+
+**Tool used:** Codex
+
+**Prompt summary:**
+
+Execute `docs/prompts/05-settlement-flow.md`, limited to the backend settlement creation flow and settlement detail retrieval, reusing the existing pricing and exchange-rate modules and respecting the documented business, persistence, layering and testing rules.
+
+**AI contribution:**
+
+The AI generated and adjusted:
+
+* settlement API DTOs, controller and mapper for `POST /api/settlements` and `GET /api/settlements/{id}`;
+* transactional settlement orchestration for assignor resolution/creation, receivable resolution/creation, one-source-currency validation, base-rate resolution, pricing snapshot generation and receivable status update;
+* settlement-specific business exceptions for duplicate settlement, mixed source currency, invalid batch content and settlement not found;
+* JPA repositories for assignors, receivables, settlements and settlement items, plus persistence factories/getters needed for controlled writes and historical reads;
+* settlement integration tests covering same-currency creation, cross-currency creation, rollback expectations, duplicate prevention, structured errors, historical snapshot reads and database uniqueness protection.
+
+**Author review:**
+
+The generated work was reviewed against:
+
+* `AGENTS.md`;
+* `README.md`;
+* `AI_USAGE.md`;
+* `docs/specs/02-domain-glossary.md`;
+* `docs/specs/03-business-rules.md`;
+* `docs/specs/04-api-contract.md`;
+* `docs/specs/05-data-model.md`;
+* `docs/specs/06-architecture.md`;
+* `docs/specs/07-testing-strategy.md`;
+* `docs/specs/08-acceptance-criteria.md`;
+* `docs/adr/ADR-001-backend-stack.md`;
+* `docs/adr/ADR-002-database-choice.md`;
+* `docs/adr/ADR-003-money-precision.md`;
+* `docs/adr/ADR-004-architecture-style.md`;
+* `docs/adr/ADR-007-ai-assisted-development.md`.
+
+Special review attention was given to transaction-boundary placement, settlement atomicity, reuse of the existing `PricingEngine`, duplicate-settlement protection, persisted audit snapshots and the absence of floating-point financial code.
+
+**Accepted changes:**
+
+* implemented `POST /api/settlements`;
+* implemented `GET /api/settlements/{id}`;
+* kept the transaction boundary in `CreateSettlementService`;
+* reused the existing pricing and FX lookup flow instead of duplicating the pricing formula in settlement logic;
+* enforced one source currency per batch and duplicate receivable detection inside the request;
+* persisted settlement header totals and item-level snapshots from the calculation result;
+* updated receivable status to `SETTLED` only inside the transactional settlement flow;
+* added focused settlement integration coverage and preserved the shared structured error format.
+
+**Rejected or corrected AI output:**
+
+* corrected a compile-time omission by adding the missing `BigDecimal` import in the settlement service before final validation;
+* removed a redundant generated conditional around settlement item external-reference mapping;
+* avoided introducing settlement statement scope, frontend changes, async processing or schema changes that were not required by the prompt;
+* avoided duplicating pricing rules in the controller or recalculating historical settlement detail from current exchange rates.
+
+**Tests or validation performed:**
+
+* `cd backend`
+* `.\mvnw.cmd test`
+* verified `BUILD SUCCESS`
+* verified the new settlement API/integration tests compile and are part of the suite
+* verified the unit/application suite passes
+* verified the settlement-related Testcontainers tests were skipped locally because Docker was unavailable in the current execution environment
+* searched the backend source and tests to confirm no new financial `double`/`float` types were introduced
+
+**Known limitations:**
+
+* the MySQL/Testcontainers-backed settlement integration tests were not executed in this environment because Docker was unavailable, so runtime validation of the new settlement flow relied on compilation, the passing non-container suite and static review of the settlement code path;
+* assignor reuse currently keys off the provided document when present; requests without a document create a new assignor record, which is acceptable for the current initial-scope settlement flow but may need refinement if a standalone assignor management workflow is introduced later.
+
+---
+
 ### 2026-07-08 - Pricing Engine
 
 **Tool used:** Codex
