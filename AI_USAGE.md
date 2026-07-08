@@ -68,6 +68,69 @@ The current AI usage includes:
 
 ## 5. Usage Log
 
+### 2026-07-08 - Initial Database Migrations
+
+**Tool used:** Codex
+
+**Prompt summary:**
+
+Execute `docs/prompts/02-database-migrations.md`, limited to the initial database layer: Flyway migrations, reference-data seeds, JPA persistence mappings strictly needed for schema validation, and MySQL-backed integration tests.
+
+**AI contribution:**
+
+The AI generated and adjusted:
+
+* `V1__create_initial_schema.sql` with the seven documented tables, foreign keys, check constraints, unique constraints and reporting indexes;
+* `V2__seed_reference_data.sql` with `BRL`, `USD`, `MERCANTILE_DUPLICATE` and `POST_DATED_CHECK`;
+* minimal JPA entity mappings under `infrastructure.persistence` so Hibernate `ddl-auto=validate` checks the Flyway-created schema against mapped tables and columns;
+* a MySQL Testcontainers integration test covering schema creation, reference-data seed, `DECIMAL` financial columns, critical unique constraints and statement-query indexes;
+* test dependencies required for Spring Boot Testcontainers integration.
+
+**Author review:**
+
+The generated work was reviewed against:
+
+* `AGENTS.md`;
+* `docs/specs/03-business-rules.md`;
+* `docs/specs/05-data-model.md`;
+* `docs/specs/06-architecture.md`;
+* `docs/specs/07-testing-strategy.md`;
+* `docs/specs/08-acceptance-criteria.md`;
+* `docs/diagrams/er-diagram.md`;
+* `docs/adr/ADR-002-database-choice.md`;
+* `docs/adr/ADR-003-money-precision.md`;
+* `docs/adr/ADR-007-ai-assisted-development.md`.
+
+Official documentation was also consulted for current Spring Boot Flyway initialization behavior and Spring Boot/Testcontainers service-connection testing support before finalizing the test approach.
+
+**Accepted changes:**
+
+* Flyway became the source of truth for the initial relational schema under `backend/src/main/resources/db/migration/`;
+* financial columns were kept on `DECIMAL(19,4)` and `DECIMAL(19,8)` only;
+* duplicate-settlement protections were enforced with `UNIQUE (receivable_id)` on `settlement_items`;
+* statement-query support indexes were created in the initial schema migration;
+* integration validation uses MySQL 8.4.10 via Testcontainers instead of H2.
+
+**Rejected or corrected AI output:**
+
+* avoided leaving Hibernate validation effectively empty by adding minimal persistence mappings instead of relying on `ddl-auto=validate` with no entities;
+* avoided using H2 for migration validation because the specs and ADRs require MySQL-representative persistence behavior;
+* avoided introducing repositories, business services or endpoints outside the scope of the migrations task.
+
+**Tests or validation performed:**
+
+* `cd backend`
+* `.\mvnw.cmd test`
+* validated Flyway migrations run from an empty MySQL container and seed the documented reference data
+* validated no financial database column uses `FLOAT`, `DOUBLE` or `REAL`
+
+**Known limitations:**
+
+* the persistence layer currently includes only the minimal JPA mappings needed for schema validation, not repositories or business workflows;
+* cross-row business invariants such as one source currency per settlement batch remain application-level rules for later increments by design.
+
+---
+
 ### 2026-07-07 - Challenge Risk Analysis
 
 **Tool used:** ChatGPT
