@@ -68,4 +68,109 @@ public class ReceivableEntity {
 
     @Column(name = "updated_at", nullable = false, columnDefinition = "DATETIME(6)")
     private LocalDateTime updatedAt;
+
+    protected ReceivableEntity() {
+    }
+
+    private ReceivableEntity(
+            String id,
+            AssignorEntity assignor,
+            String externalReference,
+            ReceivableTypeEntity receivableType,
+            BigDecimal faceValue,
+            CurrencyEntity currency,
+            LocalDate dueDate,
+            String status,
+            Long version,
+            LocalDateTime createdAt,
+            LocalDateTime updatedAt
+    ) {
+        this.id = id;
+        this.assignor = assignor;
+        this.externalReference = externalReference;
+        this.receivableType = receivableType;
+        this.faceValue = faceValue;
+        this.currency = currency;
+        this.dueDate = dueDate;
+        this.status = status;
+        this.version = version;
+        this.createdAt = createdAt;
+        this.updatedAt = updatedAt;
+    }
+
+    public static ReceivableEntity create(
+            String id,
+            AssignorEntity assignor,
+            String externalReference,
+            ReceivableTypeEntity receivableType,
+            BigDecimal faceValue,
+            CurrencyEntity currency,
+            LocalDate dueDate,
+            String status,
+            LocalDateTime createdAt,
+            LocalDateTime updatedAt
+    ) {
+        return new ReceivableEntity(
+                id,
+                assignor,
+                externalReference,
+                receivableType,
+                faceValue,
+                currency,
+                dueDate,
+                status,
+                0L,
+                createdAt,
+                updatedAt
+        );
+    }
+
+    public void markAsSettled(LocalDateTime updatedAt) {
+        this.status = "SETTLED";
+        this.updatedAt = updatedAt;
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public AssignorEntity getAssignor() {
+        return assignor;
+    }
+
+    public String getExternalReference() {
+        return externalReference;
+    }
+
+    public ReceivableTypeEntity getReceivableType() {
+        return receivableType;
+    }
+
+    public BigDecimal getFaceValue() {
+        return faceValue;
+    }
+
+    public CurrencyEntity getCurrency() {
+        return currency;
+    }
+
+    public LocalDate getDueDate() {
+        return dueDate;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public Long getVersion() {
+        return version;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
 }
