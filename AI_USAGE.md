@@ -51,21 +51,20 @@ The project author remains responsible for:
 | Tool    | Usage Status | Purpose                                                                                     |
 | ------- | -----------: | ------------------------------------------------------------------------------------------- |
 | ChatGPT |         Used | Challenge interpretation, risk analysis, specification structure and documentation drafting |
-| Codex   |      Planned | Scoped implementation, test generation, review and refactoring during feature development   |
+| Codex   |         Used | Scoped implementation, test generation, review and refactoring during feature development    |
 
 ## 4. Current Project Stage
 
-At the time of this document's initial creation, the project is in the **Specification-Driven Development** phase.
+The project started in the **Specification-Driven Development** phase and is now progressing through the first implementation increments.
 
-No backend or frontend application code has been implemented yet.
-
-The current AI usage is limited to:
+The current AI usage includes:
 
 * analyzing the challenge statement;
 * identifying potential traps and evaluation risks;
 * defining the repository documentation structure;
 * drafting initial specification and governance files;
-* planning the future Codex workflow.
+* planning the Codex workflow;
+* generating the initial backend scaffold under controlled scope.
 
 ## 5. Usage Log
 
@@ -115,6 +114,75 @@ No code was generated in this step.
 **Known limitations:**
 
 The analysis was based on the challenge statement and engineering interpretation. Final correctness will depend on implementation, tests and manual review.
+
+---
+
+### 2026-07-08 - Backend Scaffold
+
+**Tool used:** Codex
+
+**Prompt summary:**
+
+Execute `docs/prompts/01-backend-scaffold.md` after reading the required specs, ADRs, `README.md`, `docker-compose.yml` and `.env.example`, creating only the initial Spring Boot backend scaffold under `backend/`.
+
+**AI contribution:**
+
+The AI generated and adjusted:
+
+* the Maven Spring Boot 4.1.0 project scaffold under `backend/`;
+* the Maven Wrapper files so the backend can be built without a host Maven installation;
+* the layered package structure aligned with the architecture spec;
+* `application.yml` and `application-local.yml` with environment-driven datasource, Flyway, JPA, Springdoc and CORS settings;
+* a global exception handling skeleton with structured API error responses;
+* placeholder domain business exception types;
+* infrastructure configuration for UTC clock, CORS and OpenAPI;
+* a multi-stage backend `Dockerfile`;
+* a context load test and a focused exception handler test.
+
+**Author review:**
+
+The generated scaffold was reviewed against:
+
+* `AGENTS.md`;
+* `docs/specs/03-business-rules.md`;
+* `docs/specs/04-api-contract.md`;
+* `docs/specs/05-data-model.md`;
+* `docs/specs/06-architecture.md`;
+* `docs/specs/07-testing-strategy.md`;
+* `docs/adr/ADR-001-backend-stack.md`;
+* `docs/adr/ADR-002-database-choice.md`;
+* `docs/adr/ADR-003-money-precision.md`;
+* `docs/adr/ADR-004-architecture-style.md`.
+
+The dependency set, package organization and configuration properties were also checked against current official Spring Boot, Springdoc and Flyway compatibility documentation before finalizing the scaffold.
+
+**Accepted changes:**
+
+* Spring Boot 4.1.0 Maven project scaffold limited to `backend/`;
+* official package base `com.srm.creditengine`;
+* no business endpoints, pricing logic, JPA entities or Flyway schema migrations;
+* no floating-point financial code introduced;
+* Dockerfile and Maven Wrapper added for local and container execution.
+
+**Rejected or corrected AI output:**
+
+* removed unnecessary generated files from the default Spring Initializr template;
+* corrected test-time auto-configuration exclusions to Spring Boot 4 package names so the context test does not require a live MySQL database;
+* removed optional Testcontainers dependencies from this increment after dependency resolution failed and because no integration test in this scaffold required them;
+* avoided introducing any pricing, settlement or exchange-rate feature implementation ahead of scope.
+
+**Tests or validation performed:**
+
+* `cd backend`
+* `.\mvnw.cmd test`
+* verified `BUILD SUCCESS`
+* verified the scaffold keeps `BigDecimal`-safe boundaries by not introducing financial calculation code at this stage
+
+**Known limitations:**
+
+* no Flyway schema migrations were created yet by design;
+* no business endpoints were implemented yet by design;
+* `mvn` is not installed globally in the current machine context, so validation was executed with the Maven Wrapper (`mvnw.cmd`) instead.
 
 ---
 
