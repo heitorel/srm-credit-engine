@@ -68,6 +68,76 @@ The current AI usage includes:
 
 ## 5. Usage Log
 
+### 2026-07-08 - Currency Engine
+
+**Tool used:** Codex
+
+**Prompt summary:**
+
+Execute `docs/prompts/03-currency-engine.md`, limited to the backend currency and exchange-rate engine: supported-currency and receivable-type reference endpoints, exchange-rate creation and latest lookup, exact-direction handling, validation, persistence and tests.
+
+**AI contribution:**
+
+The AI generated and adjusted:
+
+* the exchange-rate domain/application flow with explicit direction handling and structured business exceptions;
+* the reference-data and exchange-rate REST controllers plus request/response DTOs;
+* Spring Data JPA repositories for currencies, receivable types and latest exchange-rate lookup by exact pair with deterministic ordering;
+* response wrappers for reference data and exchange rates aligned with the documented API contract;
+* additional global exception handling for missing required request parameters with the shared structured error format;
+* API, repository and type-safety tests covering supported reference data, exchange-rate validation, exact-pair lookup behavior and `BigDecimal` usage.
+
+**Author review:**
+
+The generated work was reviewed against:
+
+* `AGENTS.md`;
+* `README.md`;
+* `docs/specs/02-domain-glossary.md`;
+* `docs/specs/03-business-rules.md`;
+* `docs/specs/04-api-contract.md`;
+* `docs/specs/05-data-model.md`;
+* `docs/specs/06-architecture.md`;
+* `docs/specs/07-testing-strategy.md`;
+* `docs/specs/08-acceptance-criteria.md`;
+* `docs/adr/ADR-001-backend-stack.md`;
+* `docs/adr/ADR-002-database-choice.md`;
+* `docs/adr/ADR-003-money-precision.md`;
+* `docs/adr/ADR-004-architecture-style.md`;
+* `docs/adr/ADR-007-ai-assisted-development.md`.
+
+**Accepted changes:**
+
+* implemented `GET /api/reference-data/currencies`;
+* implemented `GET /api/reference-data/receivable-types`;
+* implemented `POST /api/exchange-rates`;
+* implemented `GET /api/exchange-rates/latest`;
+* kept exchange-rate direction explicit and avoided silent inversion;
+* kept exchange-rate values on `BigDecimal` only in DTO, domain and persistence boundaries;
+* added focused tests for validation, latest lookup ordering and structured errors.
+
+**Rejected or corrected AI output:**
+
+* corrected the latest-rate repository implementation to use a proper “first ordered result” query instead of an unrestricted query that could return multiple rows;
+* corrected validation so currency-format failures report the actual request field instead of a generic field name;
+* corrected the HTTP integration test setup to avoid relying on a Spring Boot test auto-configuration path that was not available in the current Boot 4.1 setup;
+* corrected manually inserted exchange-rate test IDs to valid UUID strings so the tests exercise the real response contract.
+
+**Tests or validation performed:**
+
+* `cd backend`
+* `.\mvnw.cmd test`
+* verified `BUILD SUCCESS`
+* verified the new non-container tests pass
+* verified MySQL/Testcontainers-backed tests are present but were skipped locally because Docker was not available in the current execution environment
+
+**Known limitations:**
+
+* the Testcontainers-backed integration tests for repository and API persistence behavior are implemented but were skipped in this environment due unavailable Docker;
+* this increment intentionally does not implement pricing, settlement or frontend behavior.
+
+---
+
 ### 2026-07-08 - Initial Database Migrations
 
 **Tool used:** Codex

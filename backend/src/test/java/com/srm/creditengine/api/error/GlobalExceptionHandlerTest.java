@@ -9,6 +9,7 @@ import java.time.ZoneOffset;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.mock.web.MockHttpServletRequest;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 
 class GlobalExceptionHandlerTest {
 
@@ -33,6 +34,29 @@ class GlobalExceptionHandlerTest {
         assertThat(response.details()).containsExactly(new ApiErrorDetail(
                 "paymentCurrency",
                 "Exchange rate BRL -> USD is required."
+        ));
+    }
+
+    @Test
+    void shouldBuildStructuredValidationResponseForMissingRequestParameter() {
+        Clock fixedClock = Clock.fixed(Instant.parse("2026-07-08T12:00:00Z"), ZoneOffset.UTC);
+        GlobalExceptionHandler handler = new GlobalExceptionHandler(fixedClock);
+        MockHttpServletRequest request = new MockHttpServletRequest("GET", "/api/exchange-rates/latest");
+
+        ApiErrorResponse response = handler.handleMissingServletRequestParameter(
+                new MissingServletRequestParameterException("sourceCurrency", "String"),
+                request
+        ).getBody();
+
+        assertThat(response).isNotNull();
+        assertThat(response.timestamp()).isEqualTo(Instant.parse("2026-07-08T12:00:00Z"));
+        assertThat(response.status()).isEqualTo(400);
+        assertThat(response.error()).isEqualTo("Bad Request");
+        assertThat(response.message()).isEqualTo("Validation failed.");
+        assertThat(response.path()).isEqualTo("/api/exchange-rates/latest");
+        assertThat(response.details()).containsExactly(new ApiErrorDetail(
+                "sourceCurrency",
+                "Required request parameter 'sourceCurrency' for method parameter type String is not present"
         ));
     }
 }
