@@ -170,6 +170,13 @@ cd backend
 mvn spring-boot:run
 ```
 
+Wrapper equivalent:
+
+```bash
+cd backend
+./mvnw spring-boot:run
+```
+
 ## 6.2 Backend Dependencies
 
 Verify backend includes required dependencies:
@@ -652,11 +659,25 @@ cd backend
 mvn test
 ```
 
+Wrapper equivalent:
+
+```bash
+cd backend
+./mvnw test
+```
+
 If integration tests are configured under `verify`:
 
 ```bash
 cd backend
 mvn verify
+```
+
+Wrapper equivalent:
+
+```bash
+cd backend
+./mvnw verify
 ```
 
 Checklist:
@@ -1043,11 +1064,25 @@ cd backend
 mvn test
 ```
 
+Wrapper equivalent:
+
+```bash
+cd backend
+./mvnw test
+```
+
 Optional full backend verification:
 
 ```bash
 cd backend
 mvn verify
+```
+
+Wrapper equivalent:
+
+```bash
+cd backend
+./mvnw verify
 ```
 
 Frontend:

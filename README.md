@@ -1,346 +1,203 @@
 # SRM Credit Engine
 
-Plataforma multimoeda de cessao de credito, simulacao de precificacao e liquidacao auditavel de recebiveis, desenvolvida como teste tecnico para vaga de Engenheiro de Software Pleno.
+SRM Credit Engine e uma plataforma multimoeda para cadastro de exchange rates, simulacao de precificacao, liquidacao atomica de recebiveis e consulta auditavel de historico. O projeto foi desenvolvido como desafio tecnico para uma vaga de Software Engineer Pleno, com foco em precisao financeira, consistencia transacional e rastreabilidade.
 
-## 1. Visao Geral
+## Overview
 
-O **SRM Credit Engine** e uma aplicacao para simulacao, precificacao e liquidacao de recebiveis em ambiente multimoeda.
+O sistema cobre:
 
-O sistema recebe recebiveis de empresas cedentes, calcula valor presente com base em taxa base, prazo e spread de risco por tipo de ativo, aplica conversao cambial quando necessario e registra a liquidacao de forma auditavel.
+* gestao manual de exchange rates BRL/USD;
+* simulacao de pricing com Strategy Pattern por tipo de recebivel;
+* liquidacao atomica de lotes com snapshot auditavel dos calculos;
+* consulta paginada e filtravel de settlements;
+* frontend Angular para operacao;
+* API REST documentada via OpenAPI/Swagger.
 
-O projeto foi especificado com foco em:
+## Business Rules
 
-* precisao decimal para calculos financeiros;
-* transacoes ACID;
-* rastreabilidade das decisoes de calculo;
-* arquitetura em camadas;
-* uso explicito de Strategy Pattern nas regras de precificacao;
-* API REST documentada com OpenAPI/Swagger;
-* frontend SPA para operacao e consulta;
-* fluxo Git organizado;
-* uso controlado de IA como ferramenta de apoio.
+Regras centrais do dominio:
 
-## 2. Status do Projeto
+* calculos financeiros usam `BigDecimal`, nunca `double` ou `float`;
+* o backend e a fonte oficial de calculo;
+* a conversao cambial ocorre apos o calculo do valor presente na moeda de origem;
+* batches de settlement devem ser atomicos;
+* um receivable nao pode ser liquidado duas vezes;
+* o settlement persiste snapshots auditaveis de inputs e outputs.
 
-Este repositorio esta na fase inicial de **Specification-Driven Development**.
-
-Neste estagio, o objetivo e consolidar:
-
-* especificacoes funcionais e tecnicas;
-* decisoes arquiteturais;
-* criterios de aceite;
-* modelo de dados;
-* diagramas;
-* prompts de apoio para desenvolvimento assistido por IA;
-* estrategia de implementacao incremental.
-
-A implementacao sera realizada em branches de feature a partir da branch `develop`.
-
-## 3. Contexto do Desafio
-
-O sistema simula uma plataforma de cessao de credito para uma operacao financeira envolvendo recebiveis, como duplicatas mercantis e cheques pre-datados.
-
-A aplicacao deve permitir:
-
-* gestao de taxas de cambio;
-* simulacao de precificacao;
-* liquidacao de lotes de recebiveis;
-* consulta analitica de liquidacoes;
-* visualizacao operacional via frontend;
-* documentacao tecnica suficiente para avaliacao do projeto.
-
-## 4. Stack Tecnica Definida
-
-### Backend
-
-| Camada               | Tecnologia                       |
-| -------------------- | -------------------------------- |
-| Linguagem            | Java 21                          |
-| Framework            | Spring Boot 4.1.x                |
-| Build                | Maven                            |
-| Banco de dados       | MySQL 8.4 LTS                    |
-| Migracoes            | Flyway                           |
-| Persistencia         | Spring Data JPA / Hibernate      |
-| Documentacao de API  | OpenAPI / Swagger                |
-| Testes               | JUnit 5, Mockito, AssertJ        |
-| Testes de integracao | Testcontainers, quando aplicavel |
-
-### Frontend
-
-| Camada           | Tecnologia                                |
-| ---------------- | ----------------------------------------- |
-| Framework        | Angular 22                                |
-| Linguagem        | TypeScript                                |
-| UI               | Angular Material                          |
-| Estado           | Signals, services e Reactive Forms        |
-| Comunicacao HTTP | Angular HttpClient                        |
-| Testes           | Ferramentas padrao do ecossistema Angular |
-
-### Infraestrutura Local
-
-| Recurso            | Tecnologia                            |
-| ------------------ | ------------------------------------- |
-| Orquestracao local | Docker Compose                        |
-| Banco local        | MySQL                                 |
-| Backend local      | Container ou execucao via Maven       |
-| Frontend local     | Container ou execucao via Angular CLI |
-
-## 5. Premissas de Negocio
-
-As principais premissas iniciais do projeto sao:
-
-1. O sistema suporta inicialmente as moedas `BRL` e `USD`.
-2. Os tipos de recebivel iniciais sao `MERCANTILE_DUPLICATE` e `POST_DATED_CHECK`.
-3. O spread mensal inicial por tipo de recebivel e:
-   * Duplicata Mercantil: `1.5% a.m.`
-   * Cheque Pre-datado: `2.5% a.m.`
-4. A formula base de calculo e:
+Formula base:
 
 ```text
 Present Value = Face Value / (1 + Base Rate + Spread) ^ Term
 ```
 
-5. A conversao cambial, quando necessaria, deve ser aplicada apos o calculo do valor presente na moeda de origem.
-6. A taxa de cambio usada na liquidacao deve ser salva como snapshot auditavel.
-7. Uma liquidacao em lote deve ser atomica: ou todos os itens sao liquidados, ou nenhum e persistido.
-8. Valores monetarios, taxas e resultados financeiros nao devem ser calculados com tipos de ponto flutuante.
-9. Todos os recebiveis do mesmo lote de liquidacao devem compartilhar uma unica `sourceCurrency`.
-10. O `sourceCurrency` do lote deve constar no cabecalho da resposta de liquidacao.
-11. O `baseRate` efetivo usado pelo backend deve seguir a ordem:
-    * `baseRate` informado na requisicao;
-    * fallback server-side `DEFAULT_BASE_RATE`;
-    * falha estruturada se nenhum dos dois existir.
-12. Quando uma operacao cross-currency exigir exchange rate e o par exato nao existir, a operacao deve falhar sem persistencia parcial.
+## Stack
 
-## 6. Arquitetura Planejada
+### Backend
+
+* Java 21
+* Spring Boot 4.1.0
+* Maven Wrapper
+* MySQL 8.4 LTS
+* Flyway
+* Spring Data JPA / Hibernate
+* Springdoc OpenAPI
+* JUnit 5 + Testcontainers
+
+### Frontend
+
+* Angular 22
+* TypeScript
+* Angular Material
+* Reactive Forms
+* Signals + services
+* Nginx para entrega do build em container
+
+### Local Runtime
+
+* Docker Compose
+
+## Architecture
 
 O backend segue arquitetura em camadas:
 
 ```text
 api
- `-- controllers, DTOs, validation, OpenAPI annotations, exception handling
+ `-- controllers, DTOs, validation, OpenAPI, exception handling
 
 application
- `-- use cases, orchestration, transaction boundaries
+ `-- orchestration, transaction boundaries, use cases
 
 domain
- `-- entities, value objects, business rules, pricing strategies
+ `-- entities, value objects, pricing strategies, business rules
 
 infrastructure
- `-- persistence, repositories, database queries, integrations
+ `-- JPA entities, repositories, SQL queries, config, migrations
 ```
 
-O frontend segue separacao entre estrutura de aplicacao, API access e features:
+O frontend segue organizacao por features:
 
 ```text
-frontend/
-`-- src/
-    `-- app/
-        |-- core/
-        |-- shared/
-        |-- features/
-        `-- app.config.ts
+frontend/src/app/
+|-- core/
+|-- shared/
+|-- features/
+`-- models/
 ```
 
-Regras arquiteturais importantes:
+Referencias principais:
 
-* a regra oficial de calculo financeiro fica no backend;
-* o frontend pode solicitar simulacoes, mas nao e a fonte oficial de calculo de liquidacao;
-* leituras simplificadas de relatorio nao devem pular a camada de aplicacao;
-* persistencia e consultas nao devem carregar regra financeira para controllers.
+* `docs/specs/06-architecture.md`
+* `docs/adr/ADR-004-architecture-style.md`
+* `docs/adr/ADR-005-frontend-stack.md`
+* `docs/diagrams/er-diagram.md`
+* `docs/diagrams/c4-context.md`
+* `docs/diagrams/c4-container.md`
 
-## 7. Organizacao do Repositorio
+## Main Endpoints
 
-```text
-srm-credit-engine/
-|-- AGENTS.md
-|-- AI_USAGE.md
-|-- README.md
-|-- docker-compose.yml
-|-- .gitignore
-|-- .editorconfig
-|-- .env.example
-|-- docs/
-|   |-- specs/
-|   |-- diagrams/
-|   |-- adr/
-|   `-- prompts/
-|-- backend/
-`-- frontend/
+* `GET /api/reference-data/currencies`
+* `GET /api/reference-data/receivable-types`
+* `POST /api/exchange-rates`
+* `GET /api/exchange-rates/latest`
+* `POST /api/pricing/simulations`
+* `POST /api/settlements`
+* `GET /api/settlements/{id}`
+* `GET /api/settlements/statement`
+
+## Prerequisites
+
+Para o caminho principal de execucao:
+
+* Docker Desktop ou Docker Engine com Compose
+* Docker daemon em execucao
+
+Para execucao fora de containers:
+
+* Java 21
+* Node.js 22
+* npm 11
+
+## Environment Variables
+
+Copie `.env.example` para `.env` se quiser customizar a execucao local:
+
+```bash
+cp .env.example .env
 ```
 
-## 8. Documentacao Tecnica
+Variaveis principais:
 
-A documentacao principal do projeto esta organizada em:
+| Variable | Purpose | Default |
+| --- | --- | --- |
+| `BACKEND_PORT` | Porta publicada do backend | `8080` |
+| `FRONTEND_PORT` | Porta publicada do frontend | `4200` |
+| `MYSQL_PORT` | Porta publicada do MySQL | `3306` |
+| `MYSQL_DATABASE` | Nome do schema MySQL | `srm_credit_engine` |
+| `SPRING_DATASOURCE_URL` | JDBC usado pelo backend em container | `jdbc:mysql://mysql:3306/srm_credit_engine?...` |
+| `SPRING_DATASOURCE_USERNAME` | Usuario do datasource | `srm_app` |
+| `SPRING_DATASOURCE_PASSWORD` | Senha do datasource | `srm_app_password` |
+| `CORS_ALLOWED_ORIGINS` | Origins permitidas pelo backend | `http://localhost:4200` |
+| `ANGULAR_API_BASE_URL` | Base URL consumida pelo frontend | `http://localhost:8080/api` |
+| `DEFAULT_BASE_RATE` | Fallback server-side de base rate | `0.01000000` |
+| `SUPPORTED_CURRENCIES` | Codigos aceitos pelo backend | `BRL,USD` |
 
-### Specifications
+Observacoes:
 
-```text
-docs/specs/
-|-- 00-spec-index.md
-|-- 01-product-brief.md
-|-- 02-domain-glossary.md
-|-- 03-business-rules.md
-|-- 04-api-contract.md
-|-- 05-data-model.md
-|-- 06-architecture.md
-|-- 07-testing-strategy.md
-|-- 08-acceptance-criteria.md
-|-- 09-git-workflow.md
-|-- 10-ai-workflow.md
-`-- 11-delivery-checklist.md
-```
+* `DEFAULT_BASE_RATE` so atua como fallback server-side quando a requisicao nao envia `baseRate`.
+* `ANGULAR_API_BASE_URL` e carregada por runtime config no container do frontend.
+* `.env.example` contem apenas valores seguros de exemplo.
 
-### Architecture Decision Records
+## Running with Docker
 
-```text
-docs/adr/
-|-- ADR-001-backend-stack.md
-|-- ADR-002-database-choice.md
-|-- ADR-003-money-precision.md
-|-- ADR-004-architecture-style.md
-|-- ADR-005-frontend-stack.md
-|-- ADR-006-git-workflow.md
-`-- ADR-007-ai-assisted-development.md
-```
-
-### Diagrams
-
-```text
-docs/diagrams/
-|-- er-diagram.md
-|-- c4-context.md
-`-- c4-container.md
-```
-
-### Development Prompts
-
-```text
-docs/prompts/
-|-- 00-bootstrap.md
-|-- 01-backend-scaffold.md
-|-- 02-database-migrations.md
-|-- 03-currency-engine.md
-|-- 04-pricing-engine.md
-|-- 05-settlement-flow.md
-|-- 06-settlement-detail.md
-|-- 07-statement-query.md
-|-- 08-frontend-scaffold.md
-|-- 09-frontend-simulation.md
-|-- 10-frontend-statement-grid.md
-|-- 11-frontend-exchange-rates.md
-|-- 12-docker-and-delivery.md
-`-- 13-review.md
-```
-
-## 9. Fluxo de Desenvolvimento
-
-O projeto usa um fluxo inspirado em Git Flow simplificado:
-
-```text
-main
-`-- develop
-    |-- feature/backend-scaffold
-    |-- feature/database-migrations
-    |-- feature/currency-engine
-    |-- feature/pricing-engine
-    |-- feature/settlement-flow
-    |-- feature/settlement-detail
-    |-- feature/statement-query
-    |-- feature/frontend-scaffold
-    |-- feature/frontend-simulation
-    |-- feature/frontend-statement-grid
-    `-- feature/frontend-exchange-rates
-```
-
-### Branches
-
-* `main`: branch estavel de entrega.
-* `develop`: branch de integracao.
-* `feature/*`: branches isoladas para cada incremento funcional.
-* `docs/*`: branches para documentacao quando necessario.
-
-### Pull Requests
-
-Mesmo sendo um projeto individual, as features serao integradas por Pull Requests simulados para demonstrar organizacao, rastreabilidade e controle de historico.
-
-### Commits
-
-Os commits seguirao o padrao Conventional Commits:
-
-```text
-feat: add pricing strategy engine
-fix: correct cross-currency rounding
-test: cover settlement rollback scenario
-docs: update architecture decision records
-refactor: isolate pricing calculation service
-chore: configure project tooling
-```
-
-## 10. Estrategia de Implementacao
-
-A implementacao sera feita em etapas incrementais:
-
-1. Fundacao do projeto e documentacao.
-2. Scaffold do backend.
-3. Migracoes e modelo de dados.
-4. Currency Engine.
-5. Pricing Engine com Strategy Pattern.
-6. Fluxo de liquidacao atomica.
-7. Consulta de detalhe de liquidacao persistida.
-8. Consulta analitica de liquidacoes.
-9. Scaffold do frontend.
-10. Tela de simulacao.
-11. Grid de transacoes com filtros e paginacao server-side.
-12. Tela de cadastro de exchange rates.
-13. Fechamento de Docker e entrega final.
-14. Testes, revisao e documentacao final.
-
-## 11. Criterios Tecnicos Prioritarios
-
-Durante o desenvolvimento, as seguintes decisoes terao prioridade:
-
-* correcao da regra financeira acima de conveniencia de implementacao;
-* uso de `BigDecimal` para dinheiro, taxas e calculos financeiros;
-* persistencia auditavel dos dados usados no calculo;
-* uso de transacoes para liquidacao;
-* validacao robusta de entrada;
-* tratamento global de excecoes;
-* queries otimizadas para relatorios;
-* testes unitarios para regras de precificacao;
-* documentacao clara de decisoes e trade-offs.
-
-## 12. Uso de IA
-
-O uso de IA e permitido neste projeto como ferramenta de apoio para:
-
-* organizacao de especificacoes;
-* scaffolding;
-* geracao de casos de teste;
-* revisao de codigo;
-* refatoracao;
-* documentacao;
-* identificacao de riscos.
-
-Todo uso relevante sera registrado no arquivo:
-
-```text
-AI_USAGE.md
-```
-
-A responsabilidade pelas decisoes, pelo codigo entregue e pela validacao das regras de negocio permanece integralmente com o autor do projeto.
-
-## 13. Como Executar
-
-A execucao local completa continua convergindo para `docker compose up --build`, mas o scaffold do frontend ja pode ser executado isoladamente.
-
-A expectativa final e permitir execucao com:
+Esse e o caminho principal e esperado para avaliacao:
 
 ```bash
 docker compose up --build
 ```
 
-Para o frontend Angular 22:
+A stack sobe:
+
+* MySQL em `localhost:3306`
+* backend em `http://localhost:8080`
+* frontend em `http://localhost:4200`
+
+URLs uteis:
+
+* Frontend: `http://localhost:4200`
+* Swagger UI: `http://localhost:8080/swagger-ui.html`
+* OpenAPI JSON: `http://localhost:8080/v3/api-docs`
+
+Para encerrar:
+
+```bash
+docker compose down
+```
+
+Para encerrar removendo o volume do banco:
+
+```bash
+docker compose down -v
+```
+
+## Running Locally Without Docker
+
+### Backend
+
+Com MySQL local disponivel e variaveis ajustadas:
+
+```bash
+cd backend
+./mvnw spring-boot:run
+```
+
+No PowerShell:
+
+```powershell
+cd backend
+.\mvnw.cmd spring-boot:run
+```
+
+### Frontend
 
 ```bash
 cd frontend
@@ -348,42 +205,129 @@ npm install
 npm start
 ```
 
-Build de validacao do frontend:
+O frontend aponta por padrao para:
+
+```text
+http://localhost:8080/api
+```
+
+## Database and Migrations
+
+O schema e versionado com Flyway em:
+
+```text
+backend/src/main/resources/db/migration
+```
+
+Migrations atuais:
+
+* `V1__create_initial_schema.sql`
+* `V2__seed_reference_data.sql`
+
+O backend usa `spring.jpa.hibernate.ddl-auto=validate`, entao o schema oficial vem das migrations, nao de auto-DDL do Hibernate.
+
+## Frontend Scope
+
+O frontend entrega:
+
+* tela de pricing simulation;
+* grid de settlement statement com filtros e paginacao server-side;
+* tela de cadastro manual de exchange rates;
+* tratamento de loading, empty state e backend errors.
+
+O frontend nao implementa a formula oficial de pricing; ele consome os endpoints do backend.
+
+## Validation Commands
+
+Backend:
+
+```bash
+cd backend
+./mvnw test
+```
+
+Frontend build:
 
 ```bash
 cd frontend
 npm run build
 ```
 
-O frontend usa `ANGULAR_API_BASE_URL` por runtime config e aponta por padrao para:
+Frontend tests:
 
-```text
-http://localhost:8080/api
+```bash
+cd frontend
+npm test -- --watch=false
 ```
 
-## 14. Entrega Final Planejada
+Docker Compose:
 
-A entrega final sera composta por:
+```bash
+docker compose config
+docker compose up --build
+```
 
-* backend funcional;
-* frontend funcional;
-* banco MySQL versionado com Flyway;
-* Docker Compose;
-* documentacao OpenAPI/Swagger;
-* testes unitarios;
-* README final de setup e arquitetura;
-* documentacao de uso de IA;
-* diagrama ER;
-* diagramas C4;
-* historico Git organizado;
-* Pull Requests simulados;
-* merge final de `develop` para `main`;
-* tag de release `v1.0.0`.
+## Documentation Map
 
-## 15. Status Atual
+* Specs: `docs/specs/`
+* ADRs: `docs/adr/`
+* Diagrams: `docs/diagrams/`
+* AI prompts: `docs/prompts/`
+* AI usage log: `AI_USAGE.md`
+* Agent instructions: `AGENTS.md`
+
+## Git Workflow
+
+Fluxo esperado:
 
 ```text
-Fase atual: Specification phase
-Branch atual: develop
-Proximo passo: consolidar specs, ADRs, diagramas e prompts antes da implementacao
+main
+`-- develop
+    |-- feature/*
+    |-- docs/*
+    |-- fix/*
+    `-- chore/*
 ```
+
+Regras:
+
+* feature branches saem de `develop`;
+* commits seguem Conventional Commits;
+* integracao acontece por PRs simulados;
+* entrega final sera merge de `develop` em `main` com tag `v1.0.0`.
+
+Referencias:
+
+* `docs/specs/09-git-workflow.md`
+* `docs/adr/ADR-006-git-workflow.md`
+
+## AI Usage
+
+O projeto usa IA como apoio controlado para planejamento, implementacao, testes, revisao e documentacao. Todo uso material fica registrado em `AI_USAGE.md`.
+
+Referencias:
+
+* `AI_USAGE.md`
+* `docs/specs/10-ai-workflow.md`
+* `docs/adr/ADR-007-ai-assisted-development.md`
+
+## Known Limitations
+
+* autenticacao e autorizacao estao fora de escopo;
+* exchange rates sao cadastradas manualmente;
+* nao ha integracao bancaria real;
+* `DEFAULT_BASE_RATE` depende de configuracao;
+* mixed-source-currency batches sao rejeitados em vez de suportados;
+* nao ha pipeline CI/CD nem deploy cloud como requisito central;
+* observabilidade avancada e integracoes externas ficaram fora do escopo inicial.
+
+## Future Improvements
+
+* autenticacao e autorizacao;
+* modulo de gestao de base rate;
+* integracao com provedor real de exchange rates;
+* approval workflow para settlements;
+* exportacao do statement;
+* CI/CD automatizado;
+* metricas, tracing e health checks mais completos;
+* estrategias de escala para consultas historicas.
