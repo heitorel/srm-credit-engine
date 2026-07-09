@@ -123,7 +123,7 @@ describe('PricingSimulationPageComponent', () => {
     component['submit']();
     fixture.detectChanges();
 
-    expect(fixture.nativeElement.textContent).toContain('Calculated result');
+    expect(fixture.nativeElement.textContent).toContain('Resultado calculado');
     expect(fixture.nativeElement.textContent).toContain('BRL 9,509.18');
     expect(fixture.nativeElement.textContent).toContain('USD 1,811.27');
     expect(fixture.nativeElement.textContent).toContain('5.25000000');
@@ -172,7 +172,7 @@ describe('PricingSimulationPageComponent', () => {
     component['submit']();
     fixture.detectChanges();
 
-    expect(fixture.nativeElement.textContent).toContain('Unable to simulate');
+    expect(fixture.nativeElement.textContent).toContain('Não foi possível simular');
     expect(fixture.nativeElement.textContent).toContain(
       'Missing exchange rate for currency pair BRL -> USD.',
     );

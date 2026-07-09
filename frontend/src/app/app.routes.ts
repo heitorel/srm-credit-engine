@@ -21,10 +21,29 @@ export const routes: Routes = [
       },
       {
         path: 'settlements',
-        loadComponent: () =>
-          import('./features/settlements/pages/settlements-page.component').then(
-            (module) => module.SettlementsPageComponent,
-          ),
+        children: [
+          {
+            path: 'new',
+            loadComponent: () =>
+              import(
+                './features/settlements/pages/settlement-create-page.component'
+              ).then((module) => module.SettlementCreatePageComponent),
+          },
+          {
+            path: ':id',
+            loadComponent: () =>
+              import(
+                './features/settlements/pages/settlement-detail-page.component'
+              ).then((module) => module.SettlementDetailPageComponent),
+          },
+          {
+            path: '',
+            loadComponent: () =>
+              import('./features/settlements/pages/settlements-page.component').then(
+                (module) => module.SettlementsPageComponent,
+              ),
+          },
+        ],
       },
       {
         path: 'exchange-rates',

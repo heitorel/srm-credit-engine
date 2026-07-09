@@ -10,6 +10,6 @@ import { MatChipsModule } from '@angular/material/chips';
 })
 export class PageShellComponent {
   readonly title = input.required<string>();
-  readonly subtitle = input.required<string>();
-  readonly status = input<string>('Ready');
+  readonly subtitle = input<string>('');
+  readonly status = input<string>('Pronto');
 }

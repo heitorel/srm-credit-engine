@@ -139,18 +139,18 @@ export class ExchangeRatesPageComponent implements OnInit {
   });
   protected readonly statusText = computed(() => {
     if (this.referenceDataLoading()) {
-      return 'Loading reference data';
+      return 'Carregando opções';
     }
 
     if (this.submitting()) {
-      return 'Saving exchange rate';
+      return 'Salvando';
     }
 
     if (this.latestLookupLoading()) {
-      return 'Checking latest rate';
+      return 'Consultando';
     }
 
-    return 'Ready';
+    return 'Pronto';
   });
 
   ngOnInit(): void {
@@ -260,19 +260,19 @@ export class ExchangeRatesPageComponent implements OnInit {
     }
 
     if (control.hasError('required')) {
-      return 'This field is required.';
+      return 'Campo obrigatório.';
     }
 
     if (control.hasError('min')) {
-      return 'Rate must be greater than zero.';
+      return 'A taxa deve ser maior que zero.';
     }
 
     if (control.hasError('invalidDateTime')) {
-      return 'Enter a valid ISO-compatible date and time.';
+      return 'Informe uma data e hora válidas.';
     }
 
     if (controlName === 'targetCurrency' && this.form.hasError('sameCurrencyPair')) {
-      return 'Target currency must be different from source currency.';
+      return 'A moeda de destino deve ser diferente da moeda de origem.';
     }
 
     return null;

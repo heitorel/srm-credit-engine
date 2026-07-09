@@ -1,34 +1,33 @@
 <app-page-shell
-  title="Exchange Rates"
-  subtitle="Register manual exchange rates through the backend API and optionally inspect the latest exact-direction rate for the selected pair."
+  title="Câmbio"
+  subtitle="Cadastre taxas manuais e consulte a última taxa por par."
   [status]="statusText()"
 >
   <div class="exchange-layout">
     <mat-card appearance="outlined" class="exchange-card">
       <div class="section-heading">
         <div>
-          <h2>Register exchange rate</h2>
-          <p>Supported currencies come from the backend reference-data endpoint. Validation here is only for operator usability.</p>
+          <h2>Cadastro de taxa</h2>
         </div>
 
         @if (referenceDataLoading()) {
           <div class="loading-inline">
             <mat-spinner diameter="28" />
-            <span>Loading currencies...</span>
+            <span>Carregando moedas...</span>
           </div>
         }
       </div>
 
       @if (referenceDataError(); as error) {
         <mat-card appearance="outlined" class="feedback-card feedback-card--error inline-feedback">
-          <h3>Unable to load currencies</h3>
+          <h3>Não foi possível carregar as moedas</h3>
           <p>{{ error.message }}</p>
-          <button mat-stroked-button type="button" (click)="retryReferenceData()">Retry</button>
+          <button mat-stroked-button type="button" (click)="retryReferenceData()">Tentar novamente</button>
         </mat-card>
       } @else {
         <form [formGroup]="form" (ngSubmit)="submit()" class="exchange-form">
           <mat-form-field appearance="outline">
-            <mat-label>Source currency</mat-label>
+            <mat-label>Moeda de origem</mat-label>
             <mat-select formControlName="sourceCurrency">
               @for (currency of currencies(); track trackByCurrencyCode($index, currency)) {
                 <mat-option [value]="currency.code">
@@ -40,7 +39,7 @@
           </mat-form-field>
 
           <mat-form-field appearance="outline">
-            <mat-label>Target currency</mat-label>
+            <mat-label>Moeda de destino</mat-label>
             <mat-select formControlName="targetCurrency">
               @for (currency of currencies(); track trackByCurrencyCode($index, currency)) {
                 <mat-option [value]="currency.code">
@@ -52,7 +51,7 @@
           </mat-form-field>
 
           <mat-form-field appearance="outline">
-            <mat-label>Rate</mat-label>
+            <mat-label>Taxa</mat-label>
             <input
               matInput
               formControlName="rate"
@@ -61,14 +60,14 @@
               step="0.00000001"
               placeholder="5.25000000"
             />
-            <mat-hint>Use decimal rate format expected by the backend contract.</mat-hint>
+            <mat-hint>Use o formato decimal esperado pelo backend.</mat-hint>
             <mat-error>{{ resolveControlError('rate') }}</mat-error>
           </mat-form-field>
 
           <mat-form-field appearance="outline">
-            <mat-label>Valid at</mat-label>
+            <mat-label>Válida em</mat-label>
             <input matInput formControlName="validAt" type="datetime-local" />
-            <mat-hint>Sent as ISO 8601 date-time.</mat-hint>
+            <mat-hint>Enviado como data e hora ISO 8601.</mat-hint>
             <mat-error>{{ resolveControlError('validAt') }}</mat-error>
           </mat-form-field>
 
@@ -80,9 +79,9 @@
               [disabled]="!canLookupLatest()"
             >
               @if (latestLookupLoading()) {
-                Checking latest...
+                Consultando...
               } @else {
-                Lookup latest rate
+                Consultar última taxa
               }
             </button>
 
@@ -93,9 +92,9 @@
               [disabled]="form.invalid || referenceDataLoading() || submitting()"
             >
               @if (submitting()) {
-                Saving...
+                Salvando...
               } @else {
-                Save exchange rate
+                Salvar taxa
               }
             </button>
           </div>
@@ -106,7 +105,7 @@
     <div class="result-stack">
       @if (createError(); as error) {
         <mat-card appearance="outlined" class="feedback-card feedback-card--error">
-          <h2>Unable to save exchange rate</h2>
+          <h2>Não foi possível salvar a taxa</h2>
           <p>{{ error.message }}</p>
 
           @if (error.details?.length) {
@@ -128,30 +127,29 @@
         <mat-card appearance="outlined" class="result-card">
           <div class="section-heading">
             <div>
-              <h2>Exchange rate registered</h2>
-              <p>The backend accepted the rate and returned the persisted timestamps below.</p>
+              <h2>Taxa cadastrada</h2>
             </div>
             <span class="result-badge">{{ rate.sourceCurrency }} -> {{ rate.targetCurrency }}</span>
           </div>
 
           <div class="result-grid">
             <div class="result-item">
-              <span class="label">Rate</span>
+              <span class="label">Taxa</span>
               <strong>{{ rate.rate | number: '1.8-8' }}</strong>
             </div>
 
             <div class="result-item">
-              <span class="label">Valid at</span>
+              <span class="label">Válida em</span>
               <strong>{{ rate.validAt | date: 'medium' }}</strong>
             </div>
 
             <div class="result-item">
-              <span class="label">Created at</span>
+              <span class="label">Criada em</span>
               <strong>{{ rate.createdAt | date: 'medium' }}</strong>
             </div>
 
             <div class="result-item">
-              <span class="label">Identifier</span>
+              <span class="label">Identificador</span>
               <strong>{{ rate.id }}</strong>
             </div>
           </div>
@@ -160,7 +158,7 @@
 
       @if (latestLookupError(); as error) {
         <mat-card appearance="outlined" class="feedback-card feedback-card--error">
-          <h2>Latest rate unavailable</h2>
+          <h2>Última taxa indisponível</h2>
           <p>{{ error.message }}</p>
         </mat-card>
       }
@@ -169,8 +167,7 @@
         <mat-card appearance="outlined" class="feedback-card latest-card">
           <div class="section-heading">
             <div>
-              <h2>Latest exact-direction rate</h2>
-              <p>The lookup respects pair direction and does not invert source/target currencies.</p>
+              <h2>Última taxa do par</h2>
             </div>
             <span class="result-badge result-badge--muted">
               {{ latestRate.sourceCurrency }} -> {{ latestRate.targetCurrency }}
@@ -179,30 +176,30 @@
 
           <div class="result-grid">
             <div class="result-item">
-              <span class="label">Latest rate</span>
+              <span class="label">Taxa</span>
               <strong>{{ latestRate.rate | number: '1.8-8' }}</strong>
             </div>
 
             <div class="result-item">
-              <span class="label">Valid at</span>
+              <span class="label">Válida em</span>
               <strong>{{ latestRate.validAt | date: 'medium' }}</strong>
             </div>
 
             <div class="result-item">
-              <span class="label">Created at</span>
+              <span class="label">Criada em</span>
               <strong>{{ latestRate.createdAt | date: 'medium' }}</strong>
             </div>
 
             <div class="result-item">
-              <span class="label">Identifier</span>
+              <span class="label">Identificador</span>
               <strong>{{ latestRate.id }}</strong>
             </div>
           </div>
         </mat-card>
       } @else if (!createError() && !createdRate() && !latestLookupError() && hasReferenceData()) {
         <mat-card appearance="outlined" class="feedback-card">
-          <h2>Awaiting operator action</h2>
-          <p>Pick a currency pair, optionally inspect the latest exact-direction rate, then submit a positive manual rate with its validity timestamp.</p>
+          <h2>Selecione um par de moedas</h2>
+          <p>A taxa cadastrada ou consultada será exibida aqui.</p>
         </mat-card>
       }
     </div>

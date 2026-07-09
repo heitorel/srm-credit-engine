@@ -1,7 +1,6 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
-import { MatCardModule } from '@angular/material/card';
 import { MatToolbarModule } from '@angular/material/toolbar';
 
 import { NavigationItem } from '../../models/navigation-item.model';
@@ -10,7 +9,6 @@ import { NavigationItem } from '../../models/navigation-item.model';
   selector: 'app-shell-layout',
   imports: [
     MatButtonModule,
-    MatCardModule,
     MatToolbarModule,
     RouterLink,
     RouterLinkActive,
@@ -23,19 +21,20 @@ import { NavigationItem } from '../../models/navigation-item.model';
 export class AppShellLayoutComponent {
   protected readonly navigationItems: NavigationItem[] = [
     {
-      label: 'Pricing Simulation',
+      label: 'Simulação',
       route: '/pricing-simulation',
-      description: 'Frontend shell for POST /api/pricing/simulations.',
     },
     {
-      label: 'Settlements',
+      label: 'Nova liquidação',
+      route: '/settlements/new',
+    },
+    {
+      label: 'Extrato',
       route: '/settlements',
-      description: 'Foundation for statement filters and server-side pagination.',
     },
     {
-      label: 'Exchange Rates',
+      label: 'Câmbio',
       route: '/exchange-rates',
-      description: 'Base flow for POST /api/exchange-rates and latest lookups.',
     },
   ];
 }
