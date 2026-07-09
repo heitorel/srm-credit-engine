@@ -68,6 +68,69 @@ The current AI usage includes:
 
 ## 5. Usage Log
 
+### 2026-07-08 - Frontend Exchange Rate Screen
+
+**Tool used:** Codex
+
+**Prompt summary:**
+
+Execute `docs/prompts/11-frontend-exchange-rates.md`, limited to the Angular exchange-rate registration screen, using the documented `POST /api/exchange-rates` contract, backend reference-data currencies and optional latest-rate lookup.
+
+**AI contribution:**
+
+The AI generated and adjusted:
+
+* the reactive exchange-rate form with Angular Material controls for source currency, target currency, positive rate and validity timestamp;
+* reference-data loading from the backend currency endpoint to avoid hardcoded currency options;
+* manual registration flow through `ExchangeRateApiService.create` with success, field-error and generic backend-error states;
+* optional exact-direction latest-rate lookup through `ExchangeRateApiService.getLatest`;
+* focused frontend tests for exchange-rate API request construction and exchange-rate page behavior.
+
+**Author review:**
+
+The generated work was reviewed against:
+
+* `AGENTS.md`;
+* `README.md`;
+* `AI_USAGE.md`;
+* `docs/specs/04-api-contract.md`;
+* `docs/specs/06-architecture.md`;
+* `docs/specs/08-acceptance-criteria.md`;
+* `docs/adr/ADR-005-frontend-stack.md`;
+* official Angular reactive forms and validation documentation;
+* official Angular Material component documentation for form-field/input/select usage.
+
+Special review attention was given to ensuring the page does not invent exchange-rate values, uses backend-supported currencies, preserves exact pair direction for latest lookup and treats frontend validation only as a usability layer.
+
+**Accepted changes:**
+
+* replaced the exchange-rate placeholder page with a working registration UI;
+* added typed payload submission for `POST /api/exchange-rates`;
+* added optional latest-rate lookup for the currently selected pair;
+* added clear loading, success and structured error feedback states;
+* added focused tests covering service endpoint calls, payload serialization, success rendering and latest-lookup rendering;
+* validated the feature with frontend test and build commands.
+
+**Rejected or corrected AI output:**
+
+* avoided hardcoding currencies or exchange-rate values as business truth;
+* avoided treating same-currency pairs as valid in the UI flow;
+* avoided moving any financial logic or exchange-rate inversion logic into the frontend;
+* kept the change scoped to the allowed frontend paths plus `AI_USAGE.md`.
+
+**Tests or validation performed:**
+
+* `cd frontend`
+* `npm.cmd test -- --watch=false`
+* `npm.cmd run build`
+* reviewed the generated request/response handling against `POST /api/exchange-rates` and `GET /api/exchange-rates/latest`
+
+**Known limitations:**
+
+* the validity timestamp uses a browser `datetime-local` input rendered inside Angular Material rather than a dedicated Material datetime picker, because Angular Material does not provide a first-party datetime picker in the current stack;
+* latest-rate lookup is operator-triggered instead of automatic on every pair change, which keeps backend traffic predictable and aligned with the optional scope in the prompt.
+
+---
 ### 2026-07-08 - Frontend Settlement Statement Grid
 
 **Tool used:** Codex
@@ -130,7 +193,6 @@ Special review attention was given to ensuring the frontend requests backend pag
 * the grid currently keeps the documented default sort `settledAt,desc` fixed in the request rather than exposing user-selectable sorting.
 
 ---
-
 ### 2026-07-08 - Frontend Pricing Simulation Screen
 
 **Tool used:** Codex
