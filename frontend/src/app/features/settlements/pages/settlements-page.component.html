@@ -1,51 +1,211 @@
 <app-page-shell
-  title="Settlements"
-  subtitle="Skeleton for the analytical statement view. The next increment can plug filters and paginator events directly into the documented server-side query contract."
-  status="Server-side ready"
+  title="Settlement statement"
+  subtitle="Review historical settlement batches with backend filters, persisted totals and server-side pagination."
+  status="Server-side pagination"
 >
-  <div class="feature-grid">
-    <mat-card appearance="outlined">
-      <h2>Statement strategy</h2>
-      <ul>
-        <li>Filter state stays in the feature layer.</li>
-        <li>Pagination requests the backend page instead of slicing in memory.</li>
-        <li>Historical amounts display persisted values with currency context.</li>
-      </ul>
+  <div class="statement-layout">
+    <mat-card appearance="outlined" class="filters-card">
+      <div class="card-header">
+        <div>
+          <h2>Filters</h2>
+          <p>Every filter change requests a fresh backend page.</p>
+        </div>
+        <button mat-stroked-button type="button" (click)="clearFilters()">Clear</button>
+      </div>
+
+      <form [formGroup]="form" class="filters-form">
+        <mat-form-field appearance="outline">
+          <mat-label>From</mat-label>
+          <input matInput [matDatepicker]="fromPicker" formControlName="from" />
+          <mat-datepicker-toggle matIconSuffix [for]="fromPicker" />
+          <mat-datepicker #fromPicker />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>To</mat-label>
+          <input matInput [matDatepicker]="toPicker" formControlName="to" />
+          <mat-datepicker-toggle matIconSuffix [for]="toPicker" />
+          <mat-datepicker #toPicker />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Assignor document</mat-label>
+          <input matInput formControlName="assignorDocument" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Assignor ID</mat-label>
+          <input matInput formControlName="assignorId" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Payment currency</mat-label>
+          <mat-select formControlName="paymentCurrency">
+            <mat-option [value]="null">All</mat-option>
+            @for (currency of currencies(); track trackByCurrencyCode($index, currency)) {
+              <mat-option [value]="currency.code">{{ currency.code }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Source currency</mat-label>
+          <mat-select formControlName="sourceCurrency">
+            <mat-option [value]="null">All</mat-option>
+            @for (currency of currencies(); track trackByCurrencyCode($index, currency)) {
+              <mat-option [value]="currency.code">{{ currency.code }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Receivable type</mat-label>
+          <mat-select formControlName="receivableType">
+            <mat-option [value]="null">All</mat-option>
+            @for (
+              receivableType of receivableTypes();
+              track trackByReceivableType($index, receivableType)
+            ) {
+              <mat-option [value]="receivableType.code">
+                {{ receivableType.description }}
+              </mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Status</mat-label>
+          <mat-select formControlName="status">
+            <mat-option [value]="null">All</mat-option>
+            @for (status of settlementStatuses; track trackByStatus($index, status)) {
+              <mat-option [value]="status.value">{{ status.label }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Page size</mat-label>
+          <mat-select formControlName="size">
+            @for (pageSize of pageSizeOptions; track pageSize) {
+              <mat-option [value]="pageSize">{{ pageSize }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+      </form>
+
+      @if (resolveFormError(); as formError) {
+        <p class="form-error">{{ formError }}</p>
+      }
     </mat-card>
 
-    <mat-card appearance="outlined">
-      <h2>Preview table</h2>
-      <table mat-table [dataSource]="previewRows" class="preview-table">
-        <ng-container matColumnDef="assignor">
-          <th mat-header-cell *matHeaderCellDef>Assignor</th>
-          <td mat-cell *matCellDef="let row">{{ row.assignorName }}</td>
-        </ng-container>
+    <mat-card appearance="outlined" class="results-card">
+      <div class="card-header">
+        <div>
+          <h2>Statement results</h2>
+          <p>{{ summaryText() }}</p>
+        </div>
+        @if (statementLoading()) {
+          <div class="loading-inline">
+            <mat-spinner diameter="24" />
+            <span>Loading page...</span>
+          </div>
+        }
+      </div>
 
-        <ng-container matColumnDef="paymentCurrency">
-          <th mat-header-cell *matHeaderCellDef>Payment currency</th>
-          <td mat-cell *matCellDef="let row">{{ row.paymentCurrency }}</td>
-        </ng-container>
+      @if (apiError(); as error) {
+        <div class="state-panel error-panel">
+          <h3>Unable to load statement</h3>
+          <p>{{ error.message }}</p>
+          @if ((error.details ?? []).length > 0) {
+            <ul>
+              @for (detail of error.details ?? []; track $index) {
+                <li>{{ detail.message }}</li>
+              }
+            </ul>
+          }
+          <button mat-flat-button type="button" (click)="retry()">Try again</button>
+        </div>
+      } @else if (referenceDataLoading() || statementLoading()) {
+        <div class="state-panel">
+          <mat-spinner diameter="40" />
+          <p>Loading settlement history...</p>
+        </div>
+      } @else if (emptyStateVisible()) {
+        <div class="state-panel">
+          <h3>No settlements found</h3>
+          <p>Adjust the filters to broaden the statement search.</p>
+        </div>
+      } @else if (statement(); as page) {
+        <div class="table-wrapper">
+          <table mat-table [dataSource]="page.content" class="statement-table">
+            <ng-container matColumnDef="assignor">
+              <th mat-header-cell *matHeaderCellDef>Assignor</th>
+              <td mat-cell *matCellDef="let row">
+                <div class="assignor-cell">
+                  <strong>{{ row.assignorName }}</strong>
+                  <span>{{ row.assignorDocument || 'No document' }}</span>
+                </div>
+              </td>
+            </ng-container>
 
-        <ng-container matColumnDef="status">
-          <th mat-header-cell *matHeaderCellDef>Status</th>
-          <td mat-cell *matCellDef="let row">{{ row.status }}</td>
-        </ng-container>
+            <ng-container matColumnDef="paymentCurrency">
+              <th mat-header-cell *matHeaderCellDef>Payment</th>
+              <td mat-cell *matCellDef="let row">{{ row.paymentCurrency }}</td>
+            </ng-container>
 
-        <ng-container matColumnDef="totalPaymentValue">
-          <th mat-header-cell *matHeaderCellDef>Total payment</th>
-          <td mat-cell *matCellDef="let row">
-            {{ row.totalPaymentValue | currencyAmount: row.paymentCurrency }}
-          </td>
-        </ng-container>
+            <ng-container matColumnDef="status">
+              <th mat-header-cell *matHeaderCellDef>Status</th>
+              <td mat-cell *matCellDef="let row">
+                <span class="status-chip">{{ row.status }}</span>
+              </td>
+            </ng-container>
 
-        <ng-container matColumnDef="settledAt">
-          <th mat-header-cell *matHeaderCellDef>Settled at</th>
-          <td mat-cell *matCellDef="let row">{{ row.settledAt | date: 'medium' }}</td>
-        </ng-container>
+            <ng-container matColumnDef="itemCount">
+              <th mat-header-cell *matHeaderCellDef>Items</th>
+              <td mat-cell *matCellDef="let row">{{ row.itemCount }}</td>
+            </ng-container>
 
-        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-        <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
-      </table>
+            <ng-container matColumnDef="totalFaceValue">
+              <th mat-header-cell *matHeaderCellDef>Face value</th>
+              <td mat-cell *matCellDef="let row">
+                {{ row.totalFaceValue | currencyAmount: row.sourceCurrency }}
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="totalPresentValue">
+              <th mat-header-cell *matHeaderCellDef>Present value</th>
+              <td mat-cell *matCellDef="let row">
+                {{ row.totalPresentValue | currencyAmount: row.sourceCurrency }}
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="totalPaymentValue">
+              <th mat-header-cell *matHeaderCellDef>Payment value</th>
+              <td mat-cell *matCellDef="let row">
+                {{ row.totalPaymentValue | currencyAmount: row.paymentCurrency }}
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="settledAt">
+              <th mat-header-cell *matHeaderCellDef>Settled at</th>
+              <td mat-cell *matCellDef="let row">{{ row.settledAt | date: 'medium' }}</td>
+            </ng-container>
+
+            <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+          </table>
+        </div>
+
+        <mat-paginator
+          [length]="page.totalElements"
+          [pageIndex]="page.page"
+          [pageSize]="page.size"
+          [pageSizeOptions]="pageSizeOptions"
+          [hidePageSize]="false"
+          aria-label="Settlement statement pagination"
+          (page)="handlePageChange($event)"
+        />
+      }
     </mat-card>
   </div>
 </app-page-shell>

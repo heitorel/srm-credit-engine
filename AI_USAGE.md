@@ -68,6 +68,69 @@ The current AI usage includes:
 
 ## 5. Usage Log
 
+### 2026-07-08 - Frontend Settlement Statement Grid
+
+**Tool used:** Codex
+
+**Prompt summary:**
+
+Execute `docs/prompts/10-frontend-statement-grid.md`, limited to the Angular settlement statement screen, using the documented `GET /api/settlements/statement` contract with backend pagination, filters and clear loading/empty/error states.
+
+**AI contribution:**
+
+The AI generated and adjusted:
+
+* the settlements page reactive filter form for date range, assignor, currencies, receivable type, status and page size;
+* reference-data loading for currencies and receivable types reused from backend lookup endpoints;
+* server-side statement loading on initial render, filter changes and paginator changes through `SettlementStatementApiService`;
+* statement grid rendering with settlement totals, source/payment currency context, paginator metadata and explicit loading, empty and error states;
+* focused frontend tests for statement API request construction and page behavior.
+
+**Author review:**
+
+The generated work was reviewed against:
+
+* `AGENTS.md`;
+* `README.md`;
+* `AI_USAGE.md`;
+* `docs/specs/04-api-contract.md`;
+* `docs/specs/06-architecture.md`;
+* `docs/specs/08-acceptance-criteria.md`;
+* `docs/adr/ADR-005-frontend-stack.md`;
+* official Angular documentation for reactive forms and signals state usage;
+* official Angular Material documentation for table and paginator behavior.
+
+Special review attention was given to ensuring the frontend requests backend pages instead of slicing local data, uses only persisted values returned by the API, keeps filter validation at usability level and does not invent financial calculations in the browser.
+
+**Accepted changes:**
+
+* replaced the settlements placeholder screen with a working statement grid;
+* added server-side filters with reactive-form validation for date range and page size;
+* added loading, empty and structured error states for both reference-data and statement loading flows;
+* displayed settlement totals with explicit source/payment currency context and summary text for result ranges;
+* added focused tests covering initial load, filter-triggered reload, paginator-triggered reload and backend error rendering;
+* validated the feature with frontend test and build commands.
+
+**Rejected or corrected AI output:**
+
+* corrected the statement row model to include `sourceCurrency`, which is present in the implemented backend response even though the earlier API example omitted it;
+* avoided local pagination, client-side statement aggregation or any attempt to recalculate financial totals in Angular;
+* avoided broad shared-component refactors or backend/doc changes outside the frontend statement-grid scope.
+
+**Tests or validation performed:**
+
+* `cd frontend`
+* `npm.cmd test -- --watch=false`
+* `npm.cmd run build`
+* reviewed the generated filter and pagination payloads against `GET /api/settlements/statement`
+
+**Known limitations:**
+
+* the current status filter uses the documented settlement status values locally because there is no dedicated reference-data endpoint for statuses in the current contract;
+* the grid currently keeps the documented default sort `settledAt,desc` fixed in the request rather than exposing user-selectable sorting.
+
+---
+
 ### 2026-07-08 - Frontend Pricing Simulation Screen
 
 **Tool used:** Codex
