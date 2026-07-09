@@ -1,22 +1,210 @@
 <app-page-shell
   title="Exchange Rates"
-  subtitle="Minimal feature shell for exchange-rate registration and latest-rate lookup. Runtime API configuration is already wired, so the next form can go straight through typed services."
-  status="Runtime configured"
+  subtitle="Register manual exchange rates through the backend API and optionally inspect the latest exact-direction rate for the selected pair."
+  [status]="statusText()"
 >
-  <div class="feature-grid">
-    <mat-card appearance="outlined">
-      <h2>Endpoints prepared</h2>
-      <p><code>POST /api/exchange-rates</code> for manual registration.</p>
-      <p><code>GET /api/exchange-rates/latest</code> for exact pair lookup.</p>
+  <div class="exchange-layout">
+    <mat-card appearance="outlined" class="exchange-card">
+      <div class="section-heading">
+        <div>
+          <h2>Register exchange rate</h2>
+          <p>Supported currencies come from the backend reference-data endpoint. Validation here is only for operator usability.</p>
+        </div>
+
+        @if (referenceDataLoading()) {
+          <div class="loading-inline">
+            <mat-spinner diameter="28" />
+            <span>Loading currencies...</span>
+          </div>
+        }
+      </div>
+
+      @if (referenceDataError(); as error) {
+        <mat-card appearance="outlined" class="feedback-card feedback-card--error inline-feedback">
+          <h3>Unable to load currencies</h3>
+          <p>{{ error.message }}</p>
+          <button mat-stroked-button type="button" (click)="retryReferenceData()">Retry</button>
+        </mat-card>
+      } @else {
+        <form [formGroup]="form" (ngSubmit)="submit()" class="exchange-form">
+          <mat-form-field appearance="outline">
+            <mat-label>Source currency</mat-label>
+            <mat-select formControlName="sourceCurrency">
+              @for (currency of currencies(); track trackByCurrencyCode($index, currency)) {
+                <mat-option [value]="currency.code">
+                  {{ currency.code }} - {{ currency.name }}
+                </mat-option>
+              }
+            </mat-select>
+            <mat-error>{{ resolveControlError('sourceCurrency') }}</mat-error>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Target currency</mat-label>
+            <mat-select formControlName="targetCurrency">
+              @for (currency of currencies(); track trackByCurrencyCode($index, currency)) {
+                <mat-option [value]="currency.code">
+                  {{ currency.code }} - {{ currency.name }}
+                </mat-option>
+              }
+            </mat-select>
+            <mat-error>{{ resolveControlError('targetCurrency') }}</mat-error>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Rate</mat-label>
+            <input
+              matInput
+              formControlName="rate"
+              type="number"
+              min="0.00000001"
+              step="0.00000001"
+              placeholder="5.25000000"
+            />
+            <mat-hint>Use decimal rate format expected by the backend contract.</mat-hint>
+            <mat-error>{{ resolveControlError('rate') }}</mat-error>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Valid at</mat-label>
+            <input matInput formControlName="validAt" type="datetime-local" />
+            <mat-hint>Sent as ISO 8601 date-time.</mat-hint>
+            <mat-error>{{ resolveControlError('validAt') }}</mat-error>
+          </mat-form-field>
+
+          <div class="actions">
+            <button
+              mat-stroked-button
+              type="button"
+              (click)="lookupLatest()"
+              [disabled]="!canLookupLatest()"
+            >
+              @if (latestLookupLoading()) {
+                Checking latest...
+              } @else {
+                Lookup latest rate
+              }
+            </button>
+
+            <button
+              mat-flat-button
+              color="primary"
+              type="submit"
+              [disabled]="form.invalid || referenceDataLoading() || submitting()"
+            >
+              @if (submitting()) {
+                Saving...
+              } @else {
+                Save exchange rate
+              }
+            </button>
+          </div>
+        </form>
+      }
     </mat-card>
 
-    <mat-card appearance="outlined">
-      <h2>Guardrails carried by the scaffold</h2>
-      <ul>
-        <li>Typed request/response contracts</li>
-        <li>Centralized base URL composition</li>
-        <li>Structured backend error normalization</li>
-      </ul>
-    </mat-card>
+    <div class="result-stack">
+      @if (createError(); as error) {
+        <mat-card appearance="outlined" class="feedback-card feedback-card--error">
+          <h2>Unable to save exchange rate</h2>
+          <p>{{ error.message }}</p>
+
+          @if (error.details?.length) {
+            <mat-list role="list">
+              @for (detail of error.details; track detail.message + (detail.field ?? 'global')) {
+                <mat-list-item role="listitem">
+                  @if (detail.field) {
+                    <strong>{{ detail.field }}:</strong>&nbsp;
+                  }
+                  {{ detail.message }}
+                </mat-list-item>
+              }
+            </mat-list>
+          }
+        </mat-card>
+      }
+
+      @if (createdRate(); as rate) {
+        <mat-card appearance="outlined" class="result-card">
+          <div class="section-heading">
+            <div>
+              <h2>Exchange rate registered</h2>
+              <p>The backend accepted the rate and returned the persisted timestamps below.</p>
+            </div>
+            <span class="result-badge">{{ rate.sourceCurrency }} -> {{ rate.targetCurrency }}</span>
+          </div>
+
+          <div class="result-grid">
+            <div class="result-item">
+              <span class="label">Rate</span>
+              <strong>{{ rate.rate | number: '1.8-8' }}</strong>
+            </div>
+
+            <div class="result-item">
+              <span class="label">Valid at</span>
+              <strong>{{ rate.validAt | date: 'medium' }}</strong>
+            </div>
+
+            <div class="result-item">
+              <span class="label">Created at</span>
+              <strong>{{ rate.createdAt | date: 'medium' }}</strong>
+            </div>
+
+            <div class="result-item">
+              <span class="label">Identifier</span>
+              <strong>{{ rate.id }}</strong>
+            </div>
+          </div>
+        </mat-card>
+      }
+
+      @if (latestLookupError(); as error) {
+        <mat-card appearance="outlined" class="feedback-card feedback-card--error">
+          <h2>Latest rate unavailable</h2>
+          <p>{{ error.message }}</p>
+        </mat-card>
+      }
+
+      @if (latestRate(); as latestRate) {
+        <mat-card appearance="outlined" class="feedback-card latest-card">
+          <div class="section-heading">
+            <div>
+              <h2>Latest exact-direction rate</h2>
+              <p>The lookup respects pair direction and does not invert source/target currencies.</p>
+            </div>
+            <span class="result-badge result-badge--muted">
+              {{ latestRate.sourceCurrency }} -> {{ latestRate.targetCurrency }}
+            </span>
+          </div>
+
+          <div class="result-grid">
+            <div class="result-item">
+              <span class="label">Latest rate</span>
+              <strong>{{ latestRate.rate | number: '1.8-8' }}</strong>
+            </div>
+
+            <div class="result-item">
+              <span class="label">Valid at</span>
+              <strong>{{ latestRate.validAt | date: 'medium' }}</strong>
+            </div>
+
+            <div class="result-item">
+              <span class="label">Created at</span>
+              <strong>{{ latestRate.createdAt | date: 'medium' }}</strong>
+            </div>
+
+            <div class="result-item">
+              <span class="label">Identifier</span>
+              <strong>{{ latestRate.id }}</strong>
+            </div>
+          </div>
+        </mat-card>
+      } @else if (!createError() && !createdRate() && !latestLookupError() && hasReferenceData()) {
+        <mat-card appearance="outlined" class="feedback-card">
+          <h2>Awaiting operator action</h2>
+          <p>Pick a currency pair, optionally inspect the latest exact-direction rate, then submit a positive manual rate with its validity timestamp.</p>
+        </mat-card>
+      }
+    </div>
   </div>
 </app-page-shell>
