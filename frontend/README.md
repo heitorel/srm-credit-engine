@@ -35,6 +35,10 @@ Testes:
 npm test -- --watch=false
 ```
 
+Observacao:
+
+* a implementacao atual usa `ng test` com runner baseado em Vitest.
+
 ## Runtime config
 
 O frontend carrega `ANGULAR_API_BASE_URL` via `assets/config/runtime-config.json`.

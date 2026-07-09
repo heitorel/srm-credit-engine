@@ -267,6 +267,8 @@ O backend usa `spring.jpa.hibernate.ddl-auto=validate`, entao o schema oficial v
 O frontend entrega:
 
 * tela de pricing simulation;
+* tela de criacao de settlement em lote;
+* tela de detalhe de settlement com snapshot auditavel;
 * grid de settlement statement com filtros e paginacao server-side;
 * tela de cadastro manual de exchange rates;
 * tratamento de loading, empty state e backend errors.
@@ -296,6 +298,10 @@ cd frontend
 npm test -- --watch=false
 ```
 
+Observacao:
+
+* o frontend usa `ng test` com runner baseado em Vitest na implementacao atual.
+
 Docker Compose:
 
 ```bash
@@ -309,7 +315,8 @@ docker compose up --build
 * ADRs: `docs/adr/`
 * Diagrams: `docs/diagrams/`
 * AI prompts: `docs/prompts/`
-* AI usage log: `AI_USAGE.md`
+* AI usage summary: `AI_USAGE.md`
+* AI usage detailed log: `AI_USAGE_LOGS.md`
 * Agent instructions: `AGENTS.md`
 
 ## Git Workflow
@@ -339,11 +346,12 @@ Referencias:
 
 ## AI Usage
 
-O projeto usa IA como apoio controlado para planejamento, implementacao, testes, revisao e documentacao. Todo uso material fica registrado em `AI_USAGE.md`.
+O projeto usa IA como apoio controlado para planejamento, implementacao, testes, revisao e documentacao. O resumo executivo fica em `AI_USAGE.md` e o historico detalhado fica em `AI_USAGE_LOGS.md`.
 
 Referencias:
 
 * `AI_USAGE.md`
+* `AI_USAGE_LOGS.md`
 * `docs/specs/10-ai-workflow.md`
 * `docs/adr/ADR-007-ai-assisted-development.md`
 
