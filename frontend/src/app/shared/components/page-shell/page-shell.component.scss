@@ -1,0 +1,43 @@
+.page-shell {
+  display: grid;
+  gap: 1.5rem;
+}
+
+.page-shell__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.5rem;
+  border: 1px solid rgba(24, 51, 77, 0.08);
+  border-radius: 1.5rem;
+  background: rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(14px);
+}
+
+.page-shell__header h1 {
+  margin: 0;
+  font-size: clamp(1.8rem, 4vw, 2.5rem);
+}
+
+.page-shell__subtitle {
+  margin: 0;
+}
+
+.page-shell__subtitle {
+  margin-top: 0.5rem;
+  max-width: 48rem;
+  color: #4d657d;
+  line-height: 1.6;
+}
+
+.page-shell__content {
+  display: grid;
+  gap: 1.5rem;
+}
+
+@media (max-width: 720px) {
+  .page-shell__header {
+    flex-direction: column;
+  }
+}

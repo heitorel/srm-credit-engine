@@ -1,0 +1,198 @@
+<app-page-shell
+  title="Simulação de precificação"
+  subtitle="Consulte o cálculo oficial do backend para um recebível."
+  [status]="submitting() ? 'Simulando' : 'Pronto'"
+>
+  <div class="simulation-layout">
+    <mat-card appearance="outlined" class="simulation-card">
+      <div class="section-heading">
+        <div>
+          <h2>Dados da simulação</h2>
+        </div>
+
+        @if (referenceDataLoading()) {
+          <div class="loading-inline">
+            <mat-spinner diameter="28" />
+            <span>Carregando opções...</span>
+          </div>
+        }
+      </div>
+
+      <form [formGroup]="form" (ngSubmit)="submit()" class="simulation-form">
+        <mat-form-field appearance="outline">
+          <mat-label>Valor de face</mat-label>
+          <input
+            matInput
+            formControlName="faceValue"
+            type="number"
+            min="0.01"
+            step="0.01"
+            placeholder="10000.00"
+          />
+          <mat-error>{{ resolveControlError('faceValue') }}</mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Moeda de origem</mat-label>
+          <mat-select formControlName="sourceCurrency">
+            @for (currency of currencies(); track trackByCurrencyCode($index, currency)) {
+              <mat-option [value]="currency.code">
+                {{ currency.code }} - {{ currency.name }}
+              </mat-option>
+            }
+          </mat-select>
+          <mat-error>{{ resolveControlError('sourceCurrency') }}</mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Moeda de pagamento</mat-label>
+          <mat-select formControlName="paymentCurrency">
+            @for (currency of currencies(); track trackByCurrencyCode($index, currency)) {
+              <mat-option [value]="currency.code">
+                {{ currency.code }} - {{ currency.name }}
+              </mat-option>
+            }
+          </mat-select>
+          <mat-error>{{ resolveControlError('paymentCurrency') }}</mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Tipo de recebível</mat-label>
+          <mat-select formControlName="receivableType">
+            @for (receivableType of receivableTypes(); track trackByReceivableType($index, receivableType)) {
+              <mat-option [value]="receivableType.code">
+                {{ receivableType.description }} (ref. {{ receivableType.monthlySpread | number: '1.8-8' }})
+              </mat-option>
+            }
+          </mat-select>
+          <mat-error>{{ resolveControlError('receivableType') }}</mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Taxa base</mat-label>
+          <input
+            matInput
+            formControlName="baseRate"
+            type="number"
+            min="0"
+            step="0.00000001"
+            placeholder="Opcional"
+          />
+          <mat-hint>Se vazio, o backend pode usar `DEFAULT_BASE_RATE`.</mat-hint>
+          <mat-error>{{ resolveControlError('baseRate') }}</mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Vencimento</mat-label>
+          <input matInput [matDatepicker]="dueDatePicker" formControlName="dueDate" />
+          <mat-datepicker-toggle matIconSuffix [for]="dueDatePicker" />
+          <mat-datepicker #dueDatePicker />
+          <mat-error>{{ resolveControlError('dueDate') }}</mat-error>
+        </mat-form-field>
+
+        <div class="actions">
+          <button
+            mat-flat-button
+            color="primary"
+          type="submit"
+          [disabled]="form.invalid || referenceDataLoading() || submitting()"
+        >
+          @if (submitting()) {
+              Simulando...
+            } @else {
+              Simular
+            }
+          </button>
+        </div>
+      </form>
+    </mat-card>
+
+    <div class="result-stack">
+      @if (apiError(); as error) {
+        <mat-card appearance="outlined" class="feedback-card feedback-card--error">
+          <h2>Não foi possível simular</h2>
+          <p>{{ error.message }}</p>
+
+          @if (error.details?.length) {
+            <mat-list role="list">
+              @for (detail of error.details; track detail.message + (detail.field ?? 'global')) {
+                <mat-list-item role="listitem">
+                  @if (detail.field) {
+                    <strong>{{ detail.field }}:</strong>&nbsp;
+                  }
+                  {{ detail.message }}
+                </mat-list-item>
+              }
+            </mat-list>
+          }
+        </mat-card>
+      }
+
+      @if (result(); as simulation) {
+        <mat-card appearance="outlined" class="result-card">
+          <div class="section-heading">
+            <div>
+              <h2>Resultado calculado</h2>
+            </div>
+            <span class="result-badge">
+              {{ simulation.sourceCurrency }} -> {{ simulation.paymentCurrency }}
+            </span>
+          </div>
+
+          <div class="result-grid">
+            <div class="result-item">
+              <span class="label">Valor presente</span>
+              <strong>{{ simulation.presentValueInSourceCurrency | currencyAmount: simulation.sourceCurrency }}</strong>
+            </div>
+
+            <div class="result-item">
+              <span class="label">Deságio</span>
+              <strong>{{ simulation.discountValue | currencyAmount: simulation.sourceCurrency }}</strong>
+            </div>
+
+            <div class="result-item">
+              <span class="label">Valor líquido</span>
+              <strong>{{ simulation.netPaymentValue | currencyAmount: simulation.paymentCurrency }}</strong>
+            </div>
+
+            <div class="result-item">
+              <span class="label">Spread aplicado</span>
+              <strong>{{ simulation.spread | number: '1.8-8' }}</strong>
+            </div>
+
+            <div class="result-item">
+              <span class="label">Taxa base</span>
+              <strong>{{ simulation.baseRate | number: '1.8-8' }}</strong>
+            </div>
+
+            <div class="result-item">
+              <span class="label">Prazo em meses</span>
+              <strong>{{ simulation.termInMonths | number: '1.2-8' }}</strong>
+            </div>
+
+            <div class="result-item">
+              <span class="label">Exchange rate</span>
+              <strong>
+                @if (simulation.exchangeRate === null) {
+                  Mesma moeda
+                } @else {
+                  {{ simulation.exchangeRate | number: '1.8-8' }}
+                }
+              </strong>
+            </div>
+
+            <div class="result-item">
+              <span class="label">Calculado em</span>
+              <strong>{{ simulation.calculatedAt | date: 'medium' }}</strong>
+            </div>
+          </div>
+        </mat-card>
+      } @else if (!apiError() && hasReferenceData()) {
+        <mat-card appearance="outlined" class="feedback-card">
+          <h2>Preencha os dados para simular</h2>
+          <p>O resultado será exibido aqui após a consulta ao backend.</p>
+        </mat-card>
+      }
+    </div>
+  </div>
+</app-page-shell>

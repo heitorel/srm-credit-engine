@@ -1,0 +1,145 @@
+<app-page-shell
+  title="Detalhe da liquidação"
+  subtitle="Consulte os valores persistidos do lote e os snapshots de cálculo de cada item."
+  [status]="loading() ? 'Carregando' : 'Pronto'"
+>
+  @if (apiError(); as error) {
+    <mat-card appearance="outlined" class="feedback-card feedback-card--error">
+      <h2>Não foi possível carregar a liquidação</h2>
+      <p>{{ error.message }}</p>
+      <div class="actions">
+        <button mat-flat-button type="button" (click)="retry()">Tentar novamente</button>
+        <a mat-button routerLink="/settlements">Voltar ao extrato</a>
+      </div>
+    </mat-card>
+  } @else if (loading()) {
+    <mat-card appearance="outlined" class="state-card">
+      <mat-spinner diameter="40" />
+      <p>Carregando detalhes da liquidação...</p>
+    </mat-card>
+  } @else if (settlement(); as item) {
+    <div class="detail-layout">
+      <mat-card appearance="outlined" class="summary-card">
+        <div class="section-heading">
+          <div>
+            <h2>{{ item.assignor.name }}</h2>
+            <p>{{ item.assignor.document || 'Sem documento informado' }}</p>
+          </div>
+
+          <span class="status-chip">{{ item.status }}</span>
+        </div>
+
+        <div class="summary-grid">
+          <div class="summary-item">
+            <span class="label">Moeda de origem</span>
+            <strong>{{ item.sourceCurrency }}</strong>
+          </div>
+          <div class="summary-item">
+            <span class="label">Moeda de pagamento</span>
+            <strong>{{ item.paymentCurrency }}</strong>
+          </div>
+          <div class="summary-item">
+            <span class="label">Taxa base</span>
+            <strong>{{ item.baseRate | number: '1.8-8' }}</strong>
+          </div>
+          <div class="summary-item">
+            <span class="label">Itens</span>
+            <strong>{{ item.itemCount }}</strong>
+          </div>
+          <div class="summary-item">
+            <span class="label">Total de face</span>
+            <strong>{{ item.totalFaceValue | currencyAmount: item.sourceCurrency }}</strong>
+          </div>
+          <div class="summary-item">
+            <span class="label">Total presente</span>
+            <strong>{{ item.totalPresentValue | currencyAmount: item.sourceCurrency }}</strong>
+          </div>
+          <div class="summary-item">
+            <span class="label">Total de pagamento</span>
+            <strong>{{ item.totalPaymentValue | currencyAmount: item.paymentCurrency }}</strong>
+          </div>
+          <div class="summary-item">
+            <span class="label">Liquidado em</span>
+            <strong>{{ item.settledAt | date: 'medium' }}</strong>
+          </div>
+        </div>
+
+        <div class="actions">
+          <a mat-button routerLink="/settlements">Voltar ao extrato</a>
+        </div>
+      </mat-card>
+
+      <div class="items-list">
+        @for (snapshot of item.items; track snapshot.id) {
+          <mat-card appearance="outlined" class="item-card">
+            <div class="section-heading">
+              <div>
+                <h3>{{ snapshot.externalReference }}</h3>
+                <p>{{ snapshot.receivableType }}</p>
+              </div>
+              <span class="result-badge">
+                {{ snapshot.sourceCurrency }} -> {{ snapshot.paymentCurrency }}
+              </span>
+            </div>
+
+            <div class="summary-grid">
+              <div class="summary-item">
+                <span class="label">Valor de face</span>
+                <strong>
+                  {{ snapshot.faceValue | currencyAmount: snapshot.sourceCurrency }}
+                </strong>
+              </div>
+              <div class="summary-item">
+                <span class="label">Valor presente</span>
+                <strong>
+                  {{
+                    snapshot.presentValueInSourceCurrency
+                      | currencyAmount: snapshot.sourceCurrency
+                  }}
+                </strong>
+              </div>
+              <div class="summary-item">
+                <span class="label">Deságio</span>
+                <strong>
+                  {{ snapshot.discountValue | currencyAmount: snapshot.sourceCurrency }}
+                </strong>
+              </div>
+              <div class="summary-item">
+                <span class="label">Valor de pagamento</span>
+                <strong>
+                  {{ snapshot.paymentValue | currencyAmount: snapshot.paymentCurrency }}
+                </strong>
+              </div>
+              <div class="summary-item">
+                <span class="label">Taxa base</span>
+                <strong>{{ snapshot.baseRate | number: '1.8-8' }}</strong>
+              </div>
+              <div class="summary-item">
+                <span class="label">Spread</span>
+                <strong>{{ snapshot.spread | number: '1.8-8' }}</strong>
+              </div>
+              <div class="summary-item">
+                <span class="label">Prazo em meses</span>
+                <strong>{{ snapshot.termInMonths | number: '1.2-8' }}</strong>
+              </div>
+              <div class="summary-item">
+                <span class="label">Exchange rate</span>
+                <strong>
+                  @if (snapshot.exchangeRate === null) {
+                    Mesma moeda
+                  } @else {
+                    {{ snapshot.exchangeRate | number: '1.8-8' }}
+                  }
+                </strong>
+              </div>
+              <div class="summary-item">
+                <span class="label">Calculado em</span>
+                <strong>{{ snapshot.calculatedAt | date: 'medium' }}</strong>
+              </div>
+            </div>
+          </mat-card>
+        }
+      </div>
+    </div>
+  }
+</app-page-shell>
