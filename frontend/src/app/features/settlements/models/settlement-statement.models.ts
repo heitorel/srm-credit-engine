@@ -19,6 +19,7 @@ export interface SettlementStatementRow {
   readonly assignorId: string;
   readonly assignorName: string;
   readonly assignorDocument: string | null;
+  readonly sourceCurrency: string;
   readonly paymentCurrency: string;
   readonly status: string;
   readonly itemCount: number;
@@ -26,6 +27,11 @@ export interface SettlementStatementRow {
   readonly totalPresentValue: number;
   readonly totalPaymentValue: number;
   readonly settledAt: string;
+}
+
+export interface SettlementStatusOption {
+  readonly value: string;
+  readonly label: string;
 }
 
 export type SettlementStatementResponse = PageResponse<SettlementStatementRow>;
