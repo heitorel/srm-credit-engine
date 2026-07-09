@@ -140,12 +140,14 @@ Variaveis principais:
 | `ANGULAR_API_BASE_URL` | Base URL consumida pelo frontend | `http://localhost:8080/api` |
 | `DEFAULT_BASE_RATE` | Fallback server-side de base rate | `0.01000000` |
 | `SUPPORTED_CURRENCIES` | Codigos aceitos pelo backend | `BRL,USD` |
+| `STARTUP_TEST_DATA_ENABLED` | Ativa a massa inicial controlada para validacao local | `true` no Docker Compose |
 
 Observacoes:
 
 * `DEFAULT_BASE_RATE` so atua como fallback server-side quando a requisicao nao envia `baseRate`.
 * `ANGULAR_API_BASE_URL` e carregada por runtime config no container do frontend.
 * `.env.example` contem apenas valores seguros de exemplo.
+* `STARTUP_TEST_DATA_ENABLED` deve permanecer `false` em execucoes orientadas a producao.
 
 ## Running with Docker
 
@@ -160,12 +162,46 @@ A stack sobe:
 * MySQL em `localhost:3306`
 * backend em `http://localhost:8080`
 * frontend em `http://localhost:4200`
+* massa inicial controlada no banco para o frontend nao abrir vazio
 
 URLs uteis:
 
 * Frontend: `http://localhost:4200`
 * Swagger UI: `http://localhost:8080/swagger-ui.html`
 * OpenAPI JSON: `http://localhost:8080/v3/api-docs`
+
+## Startup Test Data
+
+No caminho principal com Docker Compose, o backend sobe com uma massa inicial controlada para facilitar validacao manual logo no primeiro boot local.
+
+O dataset inclui:
+
+* exchange rates `BRL -> USD` e `USD -> BRL`, com historico suficiente para validar latest lookup;
+* assignors de exemplo;
+* receivables disponiveis para novos testes manuais;
+* settlements auditaveis ja persistidos para popular a grid de historico e a tela de detalhe.
+
+Exemplos incluidos:
+
+* assignor `ACME Comercio Ltda.` (`12345678000199`)
+* assignor `Orbit Foods S.A.` (`99887766000155`)
+* assignor `Blue Export LLC` (`55667788990011`)
+* receivable disponivel `LUM-AV-001`
+* receivable disponivel `LUM-AV-002`
+
+Para execucao local fora do Docker, habilite explicitamente a massa inicial quando quiser essa experiencia:
+
+```powershell
+$env:STARTUP_TEST_DATA_ENABLED='true'
+cd backend
+.\mvnw.cmd spring-boot:run
+```
+
+Se preferir subir sem massa inicial, defina:
+
+```text
+STARTUP_TEST_DATA_ENABLED=false
+```
 
 Para encerrar:
 

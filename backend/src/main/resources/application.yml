@@ -46,6 +46,8 @@ application:
     base-rate: ${DEFAULT_BASE_RATE:0.01000000}
   reference-data:
     supported-currencies: ${SUPPORTED_CURRENCIES:BRL,USD}
+  startup-test-data:
+    enabled: ${STARTUP_TEST_DATA_ENABLED:false}
 
 logging:
   level:
