@@ -3,6 +3,7 @@ import { of, throwError } from 'rxjs';
 
 import { TestBed } from '@angular/core/testing';
 import { provideNoopAnimations } from '@angular/platform-browser/animations';
+import { provideRouter } from '@angular/router';
 
 import { ReferenceDataApiService } from '../../../core/api/reference-data-api.service';
 import { SettlementStatementApiService } from '../services/settlement-statement-api.service';
@@ -73,6 +74,7 @@ describe('SettlementsPageComponent', () => {
       imports: [SettlementsPageComponent],
       providers: [
         provideNoopAnimations(),
+        provideRouter([]),
         {
           provide: ReferenceDataApiService,
           useValue: referenceDataApi,
@@ -177,7 +179,7 @@ describe('SettlementsPageComponent', () => {
 
     fixture.detectChanges();
 
-    expect(fixture.nativeElement.textContent).toContain('Unable to load statement');
+    expect(fixture.nativeElement.textContent).toContain('Não foi possível carregar o extrato');
     expect(fixture.nativeElement.textContent).toContain('Invalid statement date range.');
     expect(fixture.nativeElement.textContent).toContain(
       'From date must be less than or equal to to date.',

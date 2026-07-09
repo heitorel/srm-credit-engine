@@ -16,6 +16,7 @@ import {
   ValidationErrors,
   Validators,
 } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatDatepickerModule } from '@angular/material/datepicker';
@@ -86,6 +87,7 @@ function dateRangeValidator(
     MatTableModule,
     PageShellComponent,
     ReactiveFormsModule,
+    RouterLink,
   ],
   templateUrl: './settlements-page.component.html',
   styleUrl: './settlements-page.component.scss',
@@ -106,14 +108,15 @@ export class SettlementsPageComponent implements OnInit {
     'totalPresentValue',
     'totalPaymentValue',
     'settledAt',
+    'actions',
   ];
 
   protected readonly pageSizeOptions = [10, 20, 50, 100];
   protected readonly settlementStatuses: SettlementStatusOption[] = [
-    { value: 'PENDING', label: 'Pending' },
-    { value: 'SETTLED', label: 'Settled' },
-    { value: 'FAILED', label: 'Failed' },
-    { value: 'CANCELLED', label: 'Cancelled' },
+    { value: 'PENDING', label: 'Pendente' },
+    { value: 'SETTLED', label: 'Liquidado' },
+    { value: 'FAILED', label: 'Falhou' },
+    { value: 'CANCELLED', label: 'Cancelado' },
   ];
 
   protected readonly form = this.formBuilder.group(
@@ -156,13 +159,13 @@ export class SettlementsPageComponent implements OnInit {
     const statement = this.statement();
 
     if (!statement || statement.totalElements === 0) {
-      return 'No settlements match the current filters.';
+      return 'Nenhuma liquidação encontrada para os filtros atuais.';
     }
 
     const firstItem = statement.page * statement.size + 1;
     const lastItem = firstItem + statement.content.length - 1;
 
-    return `Showing ${firstItem}-${lastItem} of ${statement.totalElements} settlements.`;
+    return `Exibindo ${firstItem}-${lastItem} de ${statement.totalElements} liquidações.`;
   });
 
   ngOnInit(): void {
@@ -243,14 +246,14 @@ export class SettlementsPageComponent implements OnInit {
     }
 
     if (this.form.hasError('dateRange')) {
-      return 'From date must be less than or equal to to date.';
+      return 'A data inicial deve ser menor ou igual à data final.';
     }
 
     if (
       this.form.controls['size'].hasError('min') ||
       this.form.controls['size'].hasError('max')
     ) {
-      return 'Page size must be between 1 and 100.';
+      return 'O tamanho da página deve estar entre 1 e 100.';
     }
 
     return null;

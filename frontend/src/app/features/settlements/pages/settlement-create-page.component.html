@@ -1,0 +1,277 @@
+<app-page-shell
+  title="Nova liquidação"
+  subtitle="Registre um lote de recebíveis e envie o cálculo oficial para o backend."
+  [status]="submitting() ? 'Enviando' : 'Pronto'"
+>
+  <div class="create-layout">
+    <mat-card appearance="outlined" class="form-card">
+      <div class="section-heading">
+        <div>
+          <h2>Dados da liquidação</h2>
+        </div>
+
+        @if (referenceDataLoading()) {
+          <div class="loading-inline">
+            <mat-spinner diameter="28" />
+            <span>Carregando opções...</span>
+          </div>
+        }
+      </div>
+
+      <form [formGroup]="form" (ngSubmit)="submit()" class="create-form">
+        <div formGroupName="assignor" class="section-block">
+          <h3>Cedente</h3>
+
+          <div class="grid-two">
+            <mat-form-field appearance="outline">
+              <mat-label>Nome do cedente</mat-label>
+              <input matInput formControlName="name" />
+              <mat-error>{{ resolveTopLevelError('assignor.name') }}</mat-error>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Documento</mat-label>
+              <input matInput formControlName="document" />
+              <mat-error>{{ resolveTopLevelError('assignor.document') }}</mat-error>
+            </mat-form-field>
+          </div>
+        </div>
+
+        <div class="section-block">
+          <h3>Configuração do lote</h3>
+
+          <div class="grid-two">
+            <mat-form-field appearance="outline">
+              <mat-label>Moeda de pagamento</mat-label>
+              <mat-select formControlName="paymentCurrency">
+                @for (currency of currencies(); track trackByCurrencyCode($index, currency)) {
+                  <mat-option [value]="currency.code">
+                    {{ currency.code }} - {{ currency.name }}
+                  </mat-option>
+                }
+              </mat-select>
+              <mat-error>{{ resolveTopLevelError('paymentCurrency') }}</mat-error>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Taxa base</mat-label>
+              <input
+                matInput
+                formControlName="baseRate"
+                type="number"
+                min="0"
+                step="0.00000001"
+                placeholder="Opcional"
+              />
+              <mat-hint>Se vazio, o backend pode usar `DEFAULT_BASE_RATE`.</mat-hint>
+              <mat-error>{{ resolveTopLevelError('baseRate') }}</mat-error>
+            </mat-form-field>
+          </div>
+        </div>
+
+        <div class="section-block">
+          <div class="section-heading section-heading--compact">
+            <div>
+              <h3>Recebíveis</h3>
+              <p>{{ receivables.length }} item(ns) no lote</p>
+            </div>
+
+            <button
+              mat-stroked-button
+              type="button"
+              (click)="addReceivable()"
+              [disabled]="receivables.length >= 100"
+            >
+              Adicionar recebível
+            </button>
+          </div>
+
+          @if (resolveBatchError(); as batchError) {
+            <p class="form-error">{{ batchError }}</p>
+          }
+
+          <div formArrayName="receivables" class="receivables-list">
+            @for (receivable of receivables.controls; track $index) {
+              <div class="receivable-card" [formGroupName]="$index">
+                <div class="receivable-card__header">
+                  <h4>Recebível {{ $index + 1 }}</h4>
+
+                  <button
+                    mat-button
+                    type="button"
+                    color="warn"
+                    (click)="removeReceivable($index)"
+                    [disabled]="receivables.length === 1"
+                  >
+                    Remover
+                  </button>
+                </div>
+
+                <div class="grid-three">
+                  <mat-form-field appearance="outline">
+                    <mat-label>Referência externa</mat-label>
+                    <input matInput formControlName="externalReference" />
+                    <mat-error>
+                      {{ resolveReceivableControlError($index, 'externalReference') }}
+                    </mat-error>
+                  </mat-form-field>
+
+                  <mat-form-field appearance="outline">
+                    <mat-label>Valor de face</mat-label>
+                    <input
+                      matInput
+                      formControlName="faceValue"
+                      type="number"
+                      min="0.01"
+                      step="0.01"
+                      placeholder="10000.00"
+                    />
+                    <mat-error>{{ resolveReceivableControlError($index, 'faceValue') }}</mat-error>
+                  </mat-form-field>
+
+                  <mat-form-field appearance="outline">
+                    <mat-label>Moeda de origem</mat-label>
+                    <mat-select formControlName="sourceCurrency">
+                      @for (currency of currencies(); track trackByCurrencyCode($index, currency)) {
+                        <mat-option [value]="currency.code">
+                          {{ currency.code }} - {{ currency.name }}
+                        </mat-option>
+                      }
+                    </mat-select>
+                    <mat-error>
+                      {{ resolveReceivableControlError($index, 'sourceCurrency') }}
+                    </mat-error>
+                  </mat-form-field>
+
+                  <mat-form-field appearance="outline">
+                    <mat-label>Tipo de recebível</mat-label>
+                    <mat-select formControlName="receivableType">
+                      @for (
+                        receivableType of receivableTypes();
+                        track trackByReceivableType($index, receivableType)
+                      ) {
+                        <mat-option [value]="receivableType.code">
+                          {{ receivableType.description }}
+                        </mat-option>
+                      }
+                    </mat-select>
+                    <mat-error>
+                      {{ resolveReceivableControlError($index, 'receivableType') }}
+                    </mat-error>
+                  </mat-form-field>
+
+                  <mat-form-field appearance="outline">
+                    <mat-label>Vencimento</mat-label>
+                    <input
+                      matInput
+                      [matDatepicker]="dueDatePicker"
+                      formControlName="dueDate"
+                    />
+                    <mat-datepicker-toggle matIconSuffix [for]="dueDatePicker" />
+                    <mat-datepicker #dueDatePicker />
+                    <mat-error>{{ resolveReceivableControlError($index, 'dueDate') }}</mat-error>
+                  </mat-form-field>
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+
+        <div class="actions">
+          <button
+            mat-flat-button
+            color="primary"
+            type="submit"
+            [disabled]="form.invalid || referenceDataLoading() || submitting()"
+          >
+            @if (submitting()) {
+              Liquidando...
+            } @else {
+              Registrar liquidação
+            }
+          </button>
+
+          <a mat-button routerLink="/settlements">Ver extrato</a>
+        </div>
+      </form>
+    </mat-card>
+
+    <div class="result-stack">
+      @if (apiError(); as error) {
+        <mat-card appearance="outlined" class="feedback-card feedback-card--error">
+          <h2>Não foi possível registrar a liquidação</h2>
+          <p>{{ error.message }}</p>
+
+          @if (error.details?.length) {
+            <mat-list role="list">
+              @for (detail of error.details; track detail.message + (detail.field ?? 'global')) {
+                <mat-list-item role="listitem">
+                  @if (detail.field) {
+                    <strong>{{ detail.field }}:</strong>&nbsp;
+                  }
+                  {{ detail.message }}
+                </mat-list-item>
+              }
+            </mat-list>
+          }
+        </mat-card>
+      }
+
+      @if (createdSettlement(); as settlement) {
+        <mat-card appearance="outlined" class="result-card">
+          <div class="section-heading">
+            <div>
+              <h2>Liquidação registrada</h2>
+              <p>Lote salvo com os valores persistidos pelo backend.</p>
+            </div>
+            <span class="result-badge">
+              {{ settlement.sourceCurrency }} -> {{ settlement.paymentCurrency }}
+            </span>
+          </div>
+
+          <div class="result-grid">
+            <div class="result-item">
+              <span class="label">Cedente</span>
+              <strong>{{ settlement.assignor.name }}</strong>
+            </div>
+
+            <div class="result-item">
+              <span class="label">Itens</span>
+              <strong>{{ settlement.itemCount }}</strong>
+            </div>
+
+            <div class="result-item">
+              <span class="label">Total de face</span>
+              <strong>{{ settlement.totalFaceValue | currencyAmount: settlement.sourceCurrency }}</strong>
+            </div>
+
+            <div class="result-item">
+              <span class="label">Total presente</span>
+              <strong>
+                {{ settlement.totalPresentValue | currencyAmount: settlement.sourceCurrency }}
+              </strong>
+            </div>
+
+            <div class="result-item">
+              <span class="label">Total de pagamento</span>
+              <strong>
+                {{ settlement.totalPaymentValue | currencyAmount: settlement.paymentCurrency }}
+              </strong>
+            </div>
+
+            <div class="result-item">
+              <span class="label">Liquidado em</span>
+              <strong>{{ settlement.settledAt | date: 'medium' }}</strong>
+            </div>
+          </div>
+
+          <div class="actions actions--inline">
+            <button mat-flat-button color="primary" type="button" (click)="openCreatedSettlement()">
+              Ver detalhes
+            </button>
+          </div>
+        </mat-card>
+      }
+    </div>
+  </div>
+</app-page-shell>

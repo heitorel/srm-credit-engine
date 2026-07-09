@@ -114,7 +114,7 @@ describe('ExchangeRatesPageComponent', () => {
     component['submit']();
     fixture.detectChanges();
 
-    expect(fixture.nativeElement.textContent).toContain('Exchange rate registered');
+    expect(fixture.nativeElement.textContent).toContain('Taxa cadastrada');
     expect(fixture.nativeElement.textContent).toContain('5.25000000');
     expect(fixture.nativeElement.textContent).toContain('USD -> BRL');
   });
@@ -157,7 +157,7 @@ describe('ExchangeRatesPageComponent', () => {
     component['submit']();
     fixture.detectChanges();
 
-    expect(fixture.nativeElement.textContent).toContain('Unable to save exchange rate');
+    expect(fixture.nativeElement.textContent).toContain('Não foi possível salvar a taxa');
     expect(fixture.nativeElement.textContent).toContain(
       'Source currency and target currency must be different.',
     );
@@ -193,7 +193,7 @@ describe('ExchangeRatesPageComponent', () => {
     fixture.detectChanges();
 
     expect(exchangeRateApi.getLatest).toHaveBeenCalledWith('USD', 'BRL');
-    expect(fixture.nativeElement.textContent).toContain('Latest exact-direction rate');
+    expect(fixture.nativeElement.textContent).toContain('Última taxa do par');
     expect(fixture.nativeElement.textContent).toContain('5.25000000');
   });
 });

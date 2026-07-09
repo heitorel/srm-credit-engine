@@ -1,0 +1,135 @@
+.create-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(20rem, 0.9fr);
+  gap: 1.5rem;
+  align-items: start;
+}
+
+.form-card,
+.result-card,
+.feedback-card,
+.receivable-card {
+  border-radius: 1.5rem;
+}
+
+.create-form,
+.section-block,
+.receivables-list,
+.result-stack {
+  display: grid;
+  gap: 1.25rem;
+}
+
+.grid-two,
+.grid-three {
+  display: grid;
+  gap: 1rem;
+}
+
+.grid-two {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.grid-three {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.section-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.section-heading h2,
+.section-heading h3,
+.receivable-card__header h4 {
+  margin: 0;
+}
+
+.section-heading p,
+.receivable-card__header p {
+  margin: 0.35rem 0 0;
+  color: #4d657d;
+}
+
+.section-heading--compact {
+  align-items: center;
+}
+
+.receivable-card {
+  padding: 1rem;
+  border: 1px solid rgba(24, 51, 77, 0.08);
+  background: rgba(255, 255, 255, 0.78);
+}
+
+.receivable-card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.loading-inline,
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.actions {
+  flex-wrap: wrap;
+}
+
+.actions--inline {
+  margin-top: 1rem;
+}
+
+.result-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.result-item {
+  display: grid;
+  gap: 0.3rem;
+}
+
+.label,
+.form-error {
+  color: #4d657d;
+}
+
+.result-badge {
+  padding: 0.45rem 0.8rem;
+  border-radius: 999px;
+  background: rgba(48, 120, 211, 0.1);
+  color: #244e77;
+  font-weight: 700;
+}
+
+@media (max-width: 1080px) {
+  .create-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .grid-three {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 720px) {
+  .grid-two,
+  .grid-three,
+  .result-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .section-heading,
+  .receivable-card__header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}

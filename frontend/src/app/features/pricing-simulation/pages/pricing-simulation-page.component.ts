@@ -193,19 +193,19 @@ export class PricingSimulationPageComponent implements OnInit {
     }
 
     if (control.hasError('required')) {
-      return 'This field is required.';
+      return 'Campo obrigatório.';
     }
 
     if (control.hasError('min')) {
       if (controlName === 'baseRate') {
-        return 'Base rate must be greater than or equal to zero.';
+        return 'A taxa base deve ser maior ou igual a zero.';
       }
 
-      return 'Face value must be greater than zero.';
+      return 'O valor de face deve ser maior que zero.';
     }
 
     if (control.hasError('futureDate')) {
-      return 'Due date must be after today.';
+      return 'A data de vencimento deve ser futura.';
     }
 
     return null;

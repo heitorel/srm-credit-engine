@@ -68,6 +68,76 @@ The current AI usage includes:
 
 ## 5. Usage Log
 
+### 2026-07-09 - Frontend Settlement UI Update
+
+**Tool used:** Codex
+
+**Prompt summary:**
+
+Execute `docs/prompts/14-frontend-settlement-ui-update.md`, limited to the Angular frontend, after reviewing the challenge statement, frontend architecture guidance, API contract, acceptance criteria and AI-assisted development rules.
+
+**AI contribution:**
+
+The AI generated and adjusted:
+
+* the settlement batch creation screen with reactive forms, add/remove receivable rows, batch-level validation and `POST /api/settlements` integration;
+* the settlement detail screen with persisted header data, totals and auditable item snapshot rendering from `GET /api/settlements/{id}`;
+* settlement-specific typed frontend models and API service methods for creation and detail retrieval;
+* navigation updates from the statement grid to the settlement detail page and a dedicated route for new settlement creation;
+* Portuguese-first copy updates across the pricing simulation, settlements and exchange-rate screens, preserving technical terms only where useful;
+* visual cleanup in the shell and shared page wrapper by removing technical-challenge banners and tutorial-style copy;
+* focused service/component tests covering settlement creation, settlement detail loading and statement-to-detail navigation wiring.
+
+**Author review:**
+
+The generated work was reviewed against:
+
+* `AGENTS.md`;
+* `README.md`;
+* `AI_USAGE.md`;
+* `C:\Users\heito\Downloads\README_case_dev_srm.md`;
+* `docs/specs/01-product-brief.md`;
+* `docs/specs/03-business-rules.md`;
+* `docs/specs/04-api-contract.md`;
+* `docs/specs/06-architecture.md`;
+* `docs/specs/08-acceptance-criteria.md`;
+* `docs/adr/ADR-005-frontend-stack.md`;
+* `docs/adr/ADR-007-ai-assisted-development.md`;
+* the existing frontend routing, layout, feature modules and test suite.
+
+Special review attention was given to keeping settlement calculation ownership in the backend, preserving batch constraints from the documented contract, keeping the statement grid on server-side pagination and avoiding unrelated backend or documentation changes.
+
+**Accepted changes:**
+
+* added settlement creation and settlement detail routes to the existing Angular layout;
+* implemented the operational batch-settlement registration UI with clear loading, success and structured error states;
+* implemented the audit-focused settlement detail UI with persisted totals, currencies, timestamps and item snapshots;
+* connected the statement grid to settlement detail navigation;
+* translated the operator-facing frontend copy to Portuguese and removed challenge/test-oriented explanatory banners;
+* updated and added frontend tests, then validated the feature with passing build and test commands;
+* recorded this AI-assisted frontend update in `AI_USAGE.md`.
+
+**Rejected or corrected AI output:**
+
+* corrected a typed index-signature access in the settlement creation page that broke Angular compilation;
+* corrected a malformed service spec and a component initialization order issue where the initial receivable row depended on reference-data signals too early;
+* corrected a test scenario that tried to assert backend error handling through a client-side-invalid mixed-currency batch, replacing it with a valid request that still exercises structured backend error rendering;
+* avoided moving any pricing or settlement formula logic into Angular.
+
+**Tests or validation performed:**
+
+* `cd frontend`
+* `npm.cmd run build`
+* `npm.cmd test -- --watch=false`
+* reviewed the implemented settlement payload and detail rendering against `POST /api/settlements`, `GET /api/settlements/{id}` and `GET /api/settlements/statement`
+
+**Known limitations:**
+
+* settlement success currently keeps the operator on the creation screen with a clear success summary and a button to open the detail page, instead of forcing an automatic redirect;
+* frontend copy was translated to Portuguese-first, but some backend-originated error messages may still arrive in English until the backend standardizes those messages.
+
+---
+
 ### 2026-07-08 - Docker and Delivery Finalization
 
 **Tool used:** Codex
