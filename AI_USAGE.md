@@ -68,6 +68,76 @@ The current AI usage includes:
 
 ## 5. Usage Log
 
+### 2026-07-09 - Startup Test Data Seed for Local Validation
+
+**Tool used:** Codex
+
+**Category:** Implementation
+
+**Prompt summary:**
+
+Execute `docs/prompts/15-startup-test-data-seed.md` after reviewing the business rules, API contract, data model, architecture, testing strategy and AI workflow, implementing a controlled startup dataset that keeps the frontend useful right after local initialization without enabling sample data by default in production-oriented execution.
+
+**AI contribution:**
+
+The AI generated and adjusted:
+
+* a configuration-gated backend startup dataset mechanism controlled by `STARTUP_TEST_DATA_ENABLED`;
+* a startup data service that seeds deterministic exchange rates, assignors, available receivables and persisted settlements with auditable snapshots;
+* an application runner that only executes when the startup dataset flag is enabled;
+* Docker Compose and environment-template wiring so the main local path starts with meaningful data automatically;
+* integration tests covering enabled startup seeding, disabled mode and idempotent repeated execution;
+* README updates documenting the activation flag and the sample local dataset.
+
+**Author review:**
+
+The generated work was reviewed against:
+
+* `AGENTS.md`;
+* `README.md`;
+* `AI_USAGE.md`;
+* `docs/specs/03-business-rules.md`;
+* `docs/specs/04-api-contract.md`;
+* `docs/specs/05-data-model.md`;
+* `docs/specs/06-architecture.md`;
+* `docs/specs/07-testing-strategy.md`;
+* `docs/specs/08-acceptance-criteria.md`;
+* `docs/specs/10-ai-workflow.md`;
+* `docs/adr/ADR-002-database-choice.md`;
+* `docs/adr/ADR-003-money-precision.md`;
+* `docs/adr/ADR-004-architecture-style.md`;
+* `docs/adr/ADR-007-ai-assisted-development.md`.
+
+Special review attention was given to keeping the seed disabled by default outside explicit local activation, preserving BigDecimal-safe construction, using the existing settlement use case for audit-safe seeded settlements and avoiding interference with the normal test suite.
+
+**Accepted changes:**
+
+* added a controlled backend startup seed path for local validation;
+* seeded exchange rates, assignors, receivables and settlements in an idempotent way;
+* kept settlement auditability by generating sample settlements through the existing transactional application flow;
+* enabled the dataset by default only in the Docker Compose local path through environment configuration;
+* documented the startup dataset and activation flag in `README.md` and `.env.example`;
+* added integration coverage for enabled mode, disabled mode and idempotency.
+
+**Rejected or corrected AI output:**
+
+* rejected an initial shortcut that tried to infer seeded settlement counts through unrelated repository logic instead of using the dedicated settlement repositories;
+* avoided enabling the startup dataset implicitly for every `local` profile because that would pollute existing integration tests and production-adjacent runs;
+* avoided hardcoding sample data inside pricing logic or bypassing the existing settlement transaction flow for auditable seeded settlements.
+
+**Tests or validation performed:**
+
+* `cd backend`
+* `.\mvnw.cmd test`
+* reviewed the resulting startup dataset strategy against the frontend screens and the existing settlement/exchange-rate flows
+
+**Known limitations:**
+
+* the exchange-rate screen still requires operator interaction to fetch and display the latest registered pair, because the current frontend page does not auto-query existing rates on initial render;
+* the optional local startup path outside Docker requires explicitly setting `STARTUP_TEST_DATA_ENABLED=true` when the seeded experience is desired.
+
+---
+
 ### 2026-07-09 - Frontend Settlement UI Update
 
 **Tool used:** Codex
