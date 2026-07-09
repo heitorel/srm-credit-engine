@@ -1,7 +1,10 @@
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 
-import { CurrencyReference, ReceivableTypeReference } from '../../features/pricing-simulation/models/pricing-simulation.models';
+import {
+  CurrencyReference,
+  ReceivableTypeReference,
+} from '../../models/reference-data.model';
 import { ApiClientService } from './api-client.service';
 
 interface CurrencyReferenceResponse {

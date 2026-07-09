@@ -68,6 +68,73 @@ The current AI usage includes:
 
 ## 5. Usage Log
 
+### 2026-07-08 - Frontend Pricing Simulation Screen
+
+**Tool used:** Codex
+
+**Prompt summary:**
+
+Execute `docs/prompts/09-frontend-simulation.md`, limited to the Angular pricing simulation screen, preserving backend ownership of the pricing formula and using the documented reference-data and simulation endpoints.
+
+**AI contribution:**
+
+The AI generated and adjusted:
+
+* the reactive pricing-simulation form with Angular Material controls for face value, currencies, receivable type, optional base rate and due date;
+* reference-data loading from backend lookup endpoints for currencies and receivable types;
+* pricing simulation submission to `POST /api/pricing/simulations` with explicit loading, success and structured error states;
+* result rendering for present value, discount, net payment value, spread, base rate, term, exchange rate and calculation timestamp;
+* a small frontend model cleanup by moving reference-data interfaces to a shared app-level model file;
+* focused frontend tests for the simulation service and page behavior.
+
+**Author review:**
+
+The generated work was reviewed against:
+
+* `AGENTS.md`;
+* `README.md`;
+* `AI_USAGE.md`;
+* `docs/specs/03-business-rules.md`;
+* `docs/specs/04-api-contract.md`;
+* `docs/specs/06-architecture.md`;
+* `docs/specs/08-acceptance-criteria.md`;
+* `docs/adr/ADR-005-frontend-stack.md`;
+* `docs/adr/ADR-007-ai-assisted-development.md`;
+* official Angular documentation for reactive forms and Angular Material component usage;
+* official Angular Material documentation for datepicker behavior.
+
+Special review attention was given to ensuring the frontend does not implement the pricing formula, does not invent a client-side base rate fallback, keeps reference options backend-driven and surfaces backend validation/business errors clearly.
+
+**Accepted changes:**
+
+* replaced the placeholder pricing page with a working simulation screen;
+* added reactive-form validation for required fields, positive face value, non-negative base rate and future due date;
+* loaded currencies and receivable types from backend reference-data endpoints;
+* displayed backend-calculated values with explicit source/payment currency context and consistent decimal formatting for rates;
+* added focused tests for payload construction, success rendering and structured error rendering;
+* validated the feature with passing frontend test and build commands.
+
+**Rejected or corrected AI output:**
+
+* avoided duplicating the official pricing formula or spread resolution in Angular;
+* avoided hardcoding spreads as the business source of truth by using backend reference-data endpoints and backend-calculated result values;
+* corrected the rate display formatting to keep exchange-rate, spread and base-rate output aligned with the API contract precision;
+* corrected the Windows command execution path by using `npm.cmd` instead of PowerShell `npm.ps1`, which was blocked by the local execution policy.
+
+**Tests or validation performed:**
+
+* `cd frontend`
+* `npm.cmd test -- --watch=false`
+* `npm.cmd run build`
+* reviewed the generated page behavior and payload serialization against `POST /api/pricing/simulations`
+
+**Known limitations:**
+
+* the screen currently uses explicit submission instead of auto-simulating or debouncing requests, which keeps the flow predictable for operators and aligned with the prompt scope;
+* backend field errors are displayed clearly and associated by field name in the UI, but the current implementation does not yet inject those backend messages into Angular control error objects themselves.
+
+---
+
 ### 2026-07-08 - Frontend Scaffold
 
 **Tool used:** Codex
