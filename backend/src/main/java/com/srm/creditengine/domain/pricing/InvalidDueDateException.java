@@ -6,10 +6,9 @@ import java.util.List;
 
 public class InvalidDueDateException extends UnprocessableEntityException {
 
-    public InvalidDueDateException() {
-        super(
-                "Receivable due date must be in the future.",
-                List.of(new ApiErrorDetail("dueDate", "Due date must be after pricing date."))
-        );
-    }
+  public InvalidDueDateException() {
+    super(
+        "Receivable due date must be in the future.",
+        List.of(new ApiErrorDetail("dueDate", "Due date must be after pricing date.")));
+  }
 }

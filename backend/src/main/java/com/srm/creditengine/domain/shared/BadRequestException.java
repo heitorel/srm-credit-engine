@@ -6,11 +6,11 @@ import org.springframework.http.HttpStatus;
 
 public class BadRequestException extends BusinessException {
 
-    public BadRequestException(String message) {
-        super(HttpStatus.BAD_REQUEST, message);
-    }
+  public BadRequestException(String message) {
+    super(HttpStatus.BAD_REQUEST, message);
+  }
 
-    public BadRequestException(String message, List<ApiErrorDetail> details) {
-        super(HttpStatus.BAD_REQUEST, message, details);
-    }
+  public BadRequestException(String message, List<ApiErrorDetail> details) {
+    super(HttpStatus.BAD_REQUEST, message, details);
+  }
 }

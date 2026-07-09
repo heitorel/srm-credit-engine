@@ -1,4 +1,2 @@
-/**
- * Settlement statement query use cases.
- */
+/** Settlement statement query use cases. */
 package com.srm.creditengine.application.statement;

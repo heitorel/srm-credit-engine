@@ -7,12 +7,10 @@ import com.srm.creditengine.domain.shared.Term;
 import java.time.Instant;
 
 public record PricingContext(
-        Money faceValue,
-        CurrencyCode paymentCurrency,
-        Rate baseRate,
-        String receivableType,
-        Term term,
-        Rate exchangeRate,
-        Instant calculatedAt
-) {
-}
+    Money faceValue,
+    CurrencyCode paymentCurrency,
+    Rate baseRate,
+    String receivableType,
+    Term term,
+    Rate exchangeRate,
+    Instant calculatedAt) {}

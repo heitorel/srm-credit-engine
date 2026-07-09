@@ -10,20 +10,20 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class SettlementStatementService {
 
-    private final ListReferenceDataService referenceDataService;
-    private final SettlementStatementQueryRepository settlementStatementQueryRepository;
+  private final ListReferenceDataService referenceDataService;
+  private final SettlementStatementQueryRepository settlementStatementQueryRepository;
 
-    public SettlementStatementService(
-            ListReferenceDataService referenceDataService,
-            SettlementStatementQueryRepository settlementStatementQueryRepository
-    ) {
-        this.referenceDataService = referenceDataService;
-        this.settlementStatementQueryRepository = settlementStatementQueryRepository;
-    }
+  public SettlementStatementService(
+      ListReferenceDataService referenceDataService,
+      SettlementStatementQueryRepository settlementStatementQueryRepository) {
+    this.referenceDataService = referenceDataService;
+    this.settlementStatementQueryRepository = settlementStatementQueryRepository;
+  }
 
-    @Transactional(readOnly = true)
-    public Page<SettlementStatementRow> getStatement(SettlementStatementRequest request) {
-        SettlementStatementFilter filter = SettlementStatementFilter.from(request, referenceDataService);
-        return settlementStatementQueryRepository.findStatement(filter);
-    }
+  @Transactional(readOnly = true)
+  public Page<SettlementStatementRow> getStatement(SettlementStatementRequest request) {
+    SettlementStatementFilter filter =
+        SettlementStatementFilter.from(request, referenceDataService);
+    return settlementStatementQueryRepository.findStatement(filter);
+  }
 }

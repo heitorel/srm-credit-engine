@@ -45,7 +45,7 @@ import {
 } from '../models/settlement-statement.models';
 import { SettlementStatementApiService } from '../services/settlement-statement-api.service';
 
-type StatementFiltersFormValue = {
+interface StatementFiltersFormValue {
   from: Date | null;
   to: Date | null;
   assignorId: string | null;
@@ -55,7 +55,7 @@ type StatementFiltersFormValue = {
   receivableType: string | null;
   status: string | null;
   size: number;
-};
+}
 
 function dateRangeValidator(
   control: AbstractControl<StatementFiltersFormValue>,

@@ -1,4 +1,2 @@
-/**
- * Application use cases and orchestration services.
- */
+/** Application use cases and orchestration services. */
 package com.srm.creditengine.application;

@@ -7,16 +7,12 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 
 public record ReceivableSettlementRequest(
-        @NotBlank(message = "External reference is required.")
-        String externalReference,
-        @NotNull(message = "Face value is required.")
-        @DecimalMin(value = "0.00", inclusive = false, message = "Face value must be greater than zero.")
+    @NotBlank(message = "External reference is required.") String externalReference,
+    @NotNull(message = "Face value is required.") @DecimalMin(
+            value = "0.00",
+            inclusive = false,
+            message = "Face value must be greater than zero.")
         BigDecimal faceValue,
-        @NotBlank(message = "Source currency is required.")
-        String sourceCurrency,
-        @NotBlank(message = "Receivable type is required.")
-        String receivableType,
-        @NotNull(message = "Due date is required.")
-        LocalDate dueDate
-) {
-}
+    @NotBlank(message = "Source currency is required.") String sourceCurrency,
+    @NotBlank(message = "Receivable type is required.") String receivableType,
+    @NotNull(message = "Due date is required.") LocalDate dueDate) {}

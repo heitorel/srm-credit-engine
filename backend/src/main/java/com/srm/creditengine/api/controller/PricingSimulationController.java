@@ -15,31 +15,30 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/pricing")
 public class PricingSimulationController {
 
-    private final PricingSimulationService pricingSimulationService;
+  private final PricingSimulationService pricingSimulationService;
 
-    public PricingSimulationController(PricingSimulationService pricingSimulationService) {
-        this.pricingSimulationService = pricingSimulationService;
-    }
+  public PricingSimulationController(PricingSimulationService pricingSimulationService) {
+    this.pricingSimulationService = pricingSimulationService;
+  }
 
-    @PostMapping("/simulations")
-    @Operation(summary = "Simulate receivable pricing")
-    public PricingSimulationResponse simulate(@Valid @RequestBody PricingSimulationRequest request) {
-        return toResponse(pricingSimulationService.simulate(request));
-    }
+  @PostMapping("/simulations")
+  @Operation(summary = "Simulate receivable pricing")
+  public PricingSimulationResponse simulate(@Valid @RequestBody PricingSimulationRequest request) {
+    return toResponse(pricingSimulationService.simulate(request));
+  }
 
-    private static PricingSimulationResponse toResponse(PricingResult result) {
-        return new PricingSimulationResponse(
-                result.faceValue(),
-                result.sourceCurrency(),
-                result.paymentCurrency(),
-                result.presentValueInSourceCurrency(),
-                result.netPaymentValue(),
-                result.discountValue(),
-                result.baseRate(),
-                result.spread(),
-                result.termInMonths(),
-                result.exchangeRate(),
-                result.calculatedAt()
-        );
-    }
+  private static PricingSimulationResponse toResponse(PricingResult result) {
+    return new PricingSimulationResponse(
+        result.faceValue(),
+        result.sourceCurrency(),
+        result.paymentCurrency(),
+        result.presentValueInSourceCurrency(),
+        result.netPaymentValue(),
+        result.discountValue(),
+        result.baseRate(),
+        result.spread(),
+        result.termInMonths(),
+        result.exchangeRate(),
+        result.calculatedAt());
+  }
 }

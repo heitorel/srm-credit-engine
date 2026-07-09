@@ -6,11 +6,11 @@ import org.springframework.http.HttpStatus;
 
 public class ConflictException extends BusinessException {
 
-    public ConflictException(String message) {
-        super(HttpStatus.CONFLICT, message);
-    }
+  public ConflictException(String message) {
+    super(HttpStatus.CONFLICT, message);
+  }
 
-    public ConflictException(String message, List<ApiErrorDetail> details) {
-        super(HttpStatus.CONFLICT, message, details);
-    }
+  public ConflictException(String message, List<ApiErrorDetail> details) {
+    super(HttpStatus.CONFLICT, message, details);
+  }
 }

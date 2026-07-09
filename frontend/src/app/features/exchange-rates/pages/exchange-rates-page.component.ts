@@ -33,12 +33,12 @@ import { normalizeApiError } from '../../../shared/utils/api-error.util';
 import { ExchangeRateResponse } from '../models/exchange-rate.models';
 import { ExchangeRateApiService } from '../services/exchange-rate-api.service';
 
-type ExchangeRateFormValue = {
+interface ExchangeRateFormValue {
   sourceCurrency: string | null;
   targetCurrency: string | null;
   rate: number | null;
   validAt: string | null;
-};
+}
 
 function differentCurrencyValidator(
   control: AbstractControl<ExchangeRateFormValue>,

@@ -6,5 +6,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface AssignorJpaRepository extends JpaRepository<AssignorEntity, String> {
 
-    Optional<AssignorEntity> findFirstByDocument(String document);
+  Optional<AssignorEntity> findFirstByDocument(String document);
 }

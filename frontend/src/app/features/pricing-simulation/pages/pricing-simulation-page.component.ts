@@ -31,14 +31,14 @@ import { normalizeApiError } from '../../../shared/utils/api-error.util';
 import { PricingSimulationResponse } from '../models/pricing-simulation.models';
 import { PricingSimulationApiService } from '../services/pricing-simulation-api.service';
 
-type SimulationFormValue = {
+interface SimulationFormValue {
   faceValue: number | null;
   sourceCurrency: string | null;
   paymentCurrency: string | null;
   baseRate: number | null;
   receivableType: string | null;
   dueDate: Date | null;
-};
+}
 
 function futureDateValidator(value: Date | null): { futureDate: true } | null {
   if (!value) {

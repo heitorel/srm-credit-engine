@@ -21,60 +21,55 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class CreateExchangeRateService {
 
-    private final ExchangeRateJpaRepository exchangeRateRepository;
-    private final CurrencyJpaRepository currencyRepository;
-    private final ListReferenceDataService referenceDataService;
-    private final Clock clock;
+  private final ExchangeRateJpaRepository exchangeRateRepository;
+  private final CurrencyJpaRepository currencyRepository;
+  private final ListReferenceDataService referenceDataService;
+  private final Clock clock;
 
-    public CreateExchangeRateService(
-            ExchangeRateJpaRepository exchangeRateRepository,
-            CurrencyJpaRepository currencyRepository,
-            ListReferenceDataService referenceDataService,
-            Clock clock
-    ) {
-        this.exchangeRateRepository = exchangeRateRepository;
-        this.currencyRepository = currencyRepository;
-        this.referenceDataService = referenceDataService;
-        this.clock = clock;
+  public CreateExchangeRateService(
+      ExchangeRateJpaRepository exchangeRateRepository,
+      CurrencyJpaRepository currencyRepository,
+      ListReferenceDataService referenceDataService,
+      Clock clock) {
+    this.exchangeRateRepository = exchangeRateRepository;
+    this.currencyRepository = currencyRepository;
+    this.referenceDataService = referenceDataService;
+    this.clock = clock;
+  }
+
+  @Transactional
+  public ExchangeRateResult create(CreateExchangeRateRequest request) {
+    CurrencyCode sourceCurrency =
+        referenceDataService.requireSupportedCurrency(request.sourceCurrency(), "sourceCurrency");
+    CurrencyCode targetCurrency =
+        referenceDataService.requireSupportedCurrency(request.targetCurrency(), "targetCurrency");
+    if (sourceCurrency.value().equals(targetCurrency.value())) {
+      throw new InvalidCurrencyPairException();
     }
 
-    @Transactional
-    public ExchangeRateResult create(CreateExchangeRateRequest request) {
-        CurrencyCode sourceCurrency = referenceDataService.requireSupportedCurrency(
-                request.sourceCurrency(),
-                "sourceCurrency"
-        );
-        CurrencyCode targetCurrency = referenceDataService.requireSupportedCurrency(
-                request.targetCurrency(),
-                "targetCurrency"
-        );
-        if (sourceCurrency.value().equals(targetCurrency.value())) {
-            throw new InvalidCurrencyPairException();
-        }
+    Instant createdAt = Instant.now(clock);
+    ExchangeRate exchangeRate =
+        new ExchangeRate(
+            UUID.randomUUID(),
+            sourceCurrency,
+            targetCurrency,
+            Rate.positive(request.rate()),
+            request.validAt(),
+            createdAt);
 
-        Instant createdAt = Instant.now(clock);
-        ExchangeRate exchangeRate = new ExchangeRate(
-                UUID.randomUUID(),
-                sourceCurrency,
-                targetCurrency,
-                Rate.positive(request.rate()),
-                request.validAt(),
-                createdAt
-        );
+    CurrencyEntity sourceCurrencyEntity =
+        currencyRepository.getReferenceById(sourceCurrency.value());
+    CurrencyEntity targetCurrencyEntity =
+        currencyRepository.getReferenceById(targetCurrency.value());
 
-        CurrencyEntity sourceCurrencyEntity = currencyRepository.getReferenceById(sourceCurrency.value());
-        CurrencyEntity targetCurrencyEntity = currencyRepository.getReferenceById(targetCurrency.value());
+    ExchangeRateEntity saved =
+        exchangeRateRepository.save(
+            ExchangeRateEntity.of(exchangeRate, sourceCurrencyEntity, targetCurrencyEntity));
 
-        ExchangeRateEntity saved = exchangeRateRepository.save(ExchangeRateEntity.of(
-                exchangeRate,
-                sourceCurrencyEntity,
-                targetCurrencyEntity
-        ));
+    return ExchangeRateEntity.toResult(saved);
+  }
 
-        return ExchangeRateEntity.toResult(saved);
-    }
-
-    public static LocalDateTime toUtcDateTime(Instant instant) {
-        return LocalDateTime.ofInstant(instant, ZoneOffset.UTC);
-    }
+  public static LocalDateTime toUtcDateTime(Instant instant) {
+    return LocalDateTime.ofInstant(instant, ZoneOffset.UTC);
+  }
 }

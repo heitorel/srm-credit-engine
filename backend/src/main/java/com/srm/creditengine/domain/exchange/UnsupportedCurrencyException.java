@@ -6,10 +6,9 @@ import java.util.List;
 
 public class UnsupportedCurrencyException extends BadRequestException {
 
-    public UnsupportedCurrencyException(String field, String currencyCode) {
-        super(
-                "Unsupported currency: " + currencyCode + ".",
-                List.of(new ApiErrorDetail(field, "Supported currencies are BRL and USD."))
-        );
-    }
+  public UnsupportedCurrencyException(String field, String currencyCode) {
+    super(
+        "Unsupported currency: " + currencyCode + ".",
+        List.of(new ApiErrorDetail(field, "Supported currencies are BRL and USD.")));
+  }
 }

@@ -16,161 +16,156 @@ import java.time.LocalDateTime;
 
 @Entity
 @Table(
-        name = "receivables",
-        uniqueConstraints = @UniqueConstraint(
-                name = "uk_receivables_assignor_external_reference",
-                columnNames = {"assignor_id", "external_reference"}
-        ),
-        indexes = {
-                @Index(name = "idx_receivables_assignor", columnList = "assignor_id"),
-                @Index(name = "idx_receivables_type", columnList = "receivable_type_code"),
-                @Index(name = "idx_receivables_currency", columnList = "currency_code"),
-                @Index(name = "idx_receivables_status", columnList = "status"),
-                @Index(name = "idx_receivables_due_date", columnList = "due_date")
-        }
-)
+    name = "receivables",
+    uniqueConstraints =
+        @UniqueConstraint(
+            name = "uk_receivables_assignor_external_reference",
+            columnNames = {"assignor_id", "external_reference"}),
+    indexes = {
+      @Index(name = "idx_receivables_assignor", columnList = "assignor_id"),
+      @Index(name = "idx_receivables_type", columnList = "receivable_type_code"),
+      @Index(name = "idx_receivables_currency", columnList = "currency_code"),
+      @Index(name = "idx_receivables_status", columnList = "status"),
+      @Index(name = "idx_receivables_due_date", columnList = "due_date")
+    })
 public class ReceivableEntity {
 
-    @Id
-    @Column(name = "id", nullable = false, length = 36, columnDefinition = "CHAR(36)")
-    private String id;
+  @Id
+  @Column(name = "id", nullable = false, length = 36, columnDefinition = "CHAR(36)")
+  private String id;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "assignor_id", nullable = false, columnDefinition = "CHAR(36)")
-    private AssignorEntity assignor;
+  @ManyToOne(fetch = FetchType.LAZY, optional = false)
+  @JoinColumn(name = "assignor_id", nullable = false, columnDefinition = "CHAR(36)")
+  private AssignorEntity assignor;
 
-    @Column(name = "external_reference", nullable = false, length = 128)
-    private String externalReference;
+  @Column(name = "external_reference", nullable = false, length = 128)
+  private String externalReference;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "receivable_type_code", nullable = false)
-    private ReceivableTypeEntity receivableType;
+  @ManyToOne(fetch = FetchType.LAZY, optional = false)
+  @JoinColumn(name = "receivable_type_code", nullable = false)
+  private ReceivableTypeEntity receivableType;
 
-    @Column(name = "face_value", nullable = false, precision = 19, scale = 4)
-    private BigDecimal faceValue;
+  @Column(name = "face_value", nullable = false, precision = 19, scale = 4)
+  private BigDecimal faceValue;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "currency_code", nullable = false, columnDefinition = "CHAR(3)")
-    private CurrencyEntity currency;
+  @ManyToOne(fetch = FetchType.LAZY, optional = false)
+  @JoinColumn(name = "currency_code", nullable = false, columnDefinition = "CHAR(3)")
+  private CurrencyEntity currency;
 
-    @Column(name = "due_date", nullable = false)
-    private LocalDate dueDate;
+  @Column(name = "due_date", nullable = false)
+  private LocalDate dueDate;
 
-    @Column(name = "status", nullable = false, length = 32)
-    private String status;
+  @Column(name = "status", nullable = false, length = 32)
+  private String status;
 
-    @Version
-    @Column(name = "version", nullable = false)
-    private Long version;
+  @Version
+  @Column(name = "version", nullable = false)
+  private Long version;
 
-    @Column(name = "created_at", nullable = false, columnDefinition = "DATETIME(6)")
-    private LocalDateTime createdAt;
+  @Column(name = "created_at", nullable = false, columnDefinition = "DATETIME(6)")
+  private LocalDateTime createdAt;
 
-    @Column(name = "updated_at", nullable = false, columnDefinition = "DATETIME(6)")
-    private LocalDateTime updatedAt;
+  @Column(name = "updated_at", nullable = false, columnDefinition = "DATETIME(6)")
+  private LocalDateTime updatedAt;
 
-    protected ReceivableEntity() {
-    }
+  protected ReceivableEntity() {}
 
-    private ReceivableEntity(
-            String id,
-            AssignorEntity assignor,
-            String externalReference,
-            ReceivableTypeEntity receivableType,
-            BigDecimal faceValue,
-            CurrencyEntity currency,
-            LocalDate dueDate,
-            String status,
-            Long version,
-            LocalDateTime createdAt,
-            LocalDateTime updatedAt
-    ) {
-        this.id = id;
-        this.assignor = assignor;
-        this.externalReference = externalReference;
-        this.receivableType = receivableType;
-        this.faceValue = faceValue;
-        this.currency = currency;
-        this.dueDate = dueDate;
-        this.status = status;
-        this.version = version;
-        this.createdAt = createdAt;
-        this.updatedAt = updatedAt;
-    }
+  private ReceivableEntity(
+      String id,
+      AssignorEntity assignor,
+      String externalReference,
+      ReceivableTypeEntity receivableType,
+      BigDecimal faceValue,
+      CurrencyEntity currency,
+      LocalDate dueDate,
+      String status,
+      Long version,
+      LocalDateTime createdAt,
+      LocalDateTime updatedAt) {
+    this.id = id;
+    this.assignor = assignor;
+    this.externalReference = externalReference;
+    this.receivableType = receivableType;
+    this.faceValue = faceValue;
+    this.currency = currency;
+    this.dueDate = dueDate;
+    this.status = status;
+    this.version = version;
+    this.createdAt = createdAt;
+    this.updatedAt = updatedAt;
+  }
 
-    public static ReceivableEntity create(
-            String id,
-            AssignorEntity assignor,
-            String externalReference,
-            ReceivableTypeEntity receivableType,
-            BigDecimal faceValue,
-            CurrencyEntity currency,
-            LocalDate dueDate,
-            String status,
-            LocalDateTime createdAt,
-            LocalDateTime updatedAt
-    ) {
-        return new ReceivableEntity(
-                id,
-                assignor,
-                externalReference,
-                receivableType,
-                faceValue,
-                currency,
-                dueDate,
-                status,
-                null,
-                createdAt,
-                updatedAt
-        );
-    }
+  public static ReceivableEntity create(
+      String id,
+      AssignorEntity assignor,
+      String externalReference,
+      ReceivableTypeEntity receivableType,
+      BigDecimal faceValue,
+      CurrencyEntity currency,
+      LocalDate dueDate,
+      String status,
+      LocalDateTime createdAt,
+      LocalDateTime updatedAt) {
+    return new ReceivableEntity(
+        id,
+        assignor,
+        externalReference,
+        receivableType,
+        faceValue,
+        currency,
+        dueDate,
+        status,
+        null,
+        createdAt,
+        updatedAt);
+  }
 
-    public void markAsSettled(LocalDateTime updatedAt) {
-        this.status = "SETTLED";
-        this.updatedAt = updatedAt;
-    }
+  public void markAsSettled(LocalDateTime updatedAt) {
+    this.status = "SETTLED";
+    this.updatedAt = updatedAt;
+  }
 
-    public String getId() {
-        return id;
-    }
+  public String getId() {
+    return id;
+  }
 
-    public AssignorEntity getAssignor() {
-        return assignor;
-    }
+  public AssignorEntity getAssignor() {
+    return assignor;
+  }
 
-    public String getExternalReference() {
-        return externalReference;
-    }
+  public String getExternalReference() {
+    return externalReference;
+  }
 
-    public ReceivableTypeEntity getReceivableType() {
-        return receivableType;
-    }
+  public ReceivableTypeEntity getReceivableType() {
+    return receivableType;
+  }
 
-    public BigDecimal getFaceValue() {
-        return faceValue;
-    }
+  public BigDecimal getFaceValue() {
+    return faceValue;
+  }
 
-    public CurrencyEntity getCurrency() {
-        return currency;
-    }
+  public CurrencyEntity getCurrency() {
+    return currency;
+  }
 
-    public LocalDate getDueDate() {
-        return dueDate;
-    }
+  public LocalDate getDueDate() {
+    return dueDate;
+  }
 
-    public String getStatus() {
-        return status;
-    }
+  public String getStatus() {
+    return status;
+  }
 
-    public Long getVersion() {
-        return version;
-    }
+  public Long getVersion() {
+    return version;
+  }
 
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
-    }
+  public LocalDateTime getCreatedAt() {
+    return createdAt;
+  }
 
-    public LocalDateTime getUpdatedAt() {
-        return updatedAt;
-    }
+  public LocalDateTime getUpdatedAt() {
+    return updatedAt;
+  }
 }

@@ -11,42 +11,41 @@ import java.time.LocalDateTime;
 @Table(name = "receivable_types")
 public class ReceivableTypeEntity {
 
-    @Id
-    @Column(name = "code", nullable = false, length = 64)
-    private String code;
+  @Id
+  @Column(name = "code", nullable = false, length = 64)
+  private String code;
 
-    @Column(name = "description", nullable = false, length = 128)
-    private String description;
+  @Column(name = "description", nullable = false, length = 128)
+  private String description;
 
-    @Column(name = "monthly_spread", nullable = false, precision = 19, scale = 8)
-    private BigDecimal monthlySpread;
+  @Column(name = "monthly_spread", nullable = false, precision = 19, scale = 8)
+  private BigDecimal monthlySpread;
 
-    @Column(name = "created_at", nullable = false, columnDefinition = "DATETIME(6)")
-    private LocalDateTime createdAt;
+  @Column(name = "created_at", nullable = false, columnDefinition = "DATETIME(6)")
+  private LocalDateTime createdAt;
 
-    @Column(name = "updated_at", nullable = false, columnDefinition = "DATETIME(6)")
-    private LocalDateTime updatedAt;
+  @Column(name = "updated_at", nullable = false, columnDefinition = "DATETIME(6)")
+  private LocalDateTime updatedAt;
 
-    protected ReceivableTypeEntity() {
-    }
+  protected ReceivableTypeEntity() {}
 
-    public String getCode() {
-        return code;
-    }
+  public String getCode() {
+    return code;
+  }
 
-    public String getDescription() {
-        return description;
-    }
+  public String getDescription() {
+    return description;
+  }
 
-    public BigDecimal getMonthlySpread() {
-        return monthlySpread;
-    }
+  public BigDecimal getMonthlySpread() {
+    return monthlySpread;
+  }
 
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
-    }
+  public LocalDateTime getCreatedAt() {
+    return createdAt;
+  }
 
-    public LocalDateTime getUpdatedAt() {
-        return updatedAt;
-    }
+  public LocalDateTime getUpdatedAt() {
+    return updatedAt;
+  }
 }

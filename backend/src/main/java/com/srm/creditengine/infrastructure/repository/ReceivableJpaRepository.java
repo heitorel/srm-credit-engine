@@ -6,5 +6,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface ReceivableJpaRepository extends JpaRepository<ReceivableEntity, String> {
 
-    Optional<ReceivableEntity> findByAssignor_IdAndExternalReference(String assignorId, String externalReference);
+  Optional<ReceivableEntity> findByAssignor_IdAndExternalReference(
+      String assignorId, String externalReference);
 }

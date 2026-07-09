@@ -1,4 +1,2 @@
-/**
- * Request DTOs live here.
- */
+/** Request DTOs live here. */
 package com.srm.creditengine.api.request;

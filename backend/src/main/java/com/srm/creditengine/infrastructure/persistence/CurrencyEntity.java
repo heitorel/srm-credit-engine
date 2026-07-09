@@ -10,42 +10,41 @@ import java.time.LocalDateTime;
 @Table(name = "currencies")
 public class CurrencyEntity {
 
-    @Id
-    @Column(name = "code", nullable = false, length = 3, columnDefinition = "CHAR(3)")
-    private String code;
+  @Id
+  @Column(name = "code", nullable = false, length = 3, columnDefinition = "CHAR(3)")
+  private String code;
 
-    @Column(name = "name", nullable = false, length = 64)
-    private String name;
+  @Column(name = "name", nullable = false, length = 64)
+  private String name;
 
-    @Column(name = "decimal_places", nullable = false, columnDefinition = "TINYINT")
-    private Integer decimalPlaces;
+  @Column(name = "decimal_places", nullable = false, columnDefinition = "TINYINT")
+  private Integer decimalPlaces;
 
-    @Column(name = "created_at", nullable = false, columnDefinition = "DATETIME(6)")
-    private LocalDateTime createdAt;
+  @Column(name = "created_at", nullable = false, columnDefinition = "DATETIME(6)")
+  private LocalDateTime createdAt;
 
-    @Column(name = "updated_at", nullable = false, columnDefinition = "DATETIME(6)")
-    private LocalDateTime updatedAt;
+  @Column(name = "updated_at", nullable = false, columnDefinition = "DATETIME(6)")
+  private LocalDateTime updatedAt;
 
-    protected CurrencyEntity() {
-    }
+  protected CurrencyEntity() {}
 
-    public String getCode() {
-        return code;
-    }
+  public String getCode() {
+    return code;
+  }
 
-    public String getName() {
-        return name;
-    }
+  public String getName() {
+    return name;
+  }
 
-    public Integer getDecimalPlaces() {
-        return decimalPlaces;
-    }
+  public Integer getDecimalPlaces() {
+    return decimalPlaces;
+  }
 
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
-    }
+  public LocalDateTime getCreatedAt() {
+    return createdAt;
+  }
 
-    public LocalDateTime getUpdatedAt() {
-        return updatedAt;
-    }
+  public LocalDateTime getUpdatedAt() {
+    return updatedAt;
+  }
 }

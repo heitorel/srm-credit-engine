@@ -6,8 +6,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface ExchangeRateJpaRepository extends JpaRepository<ExchangeRateEntity, String> {
 
-    Optional<ExchangeRateEntity> findFirstBySourceCurrency_CodeAndTargetCurrency_CodeOrderByValidAtDescCreatedAtDescIdDesc(
-            String sourceCurrency,
-            String targetCurrency
-    );
+  Optional<ExchangeRateEntity>
+      findFirstBySourceCurrency_CodeAndTargetCurrency_CodeOrderByValidAtDescCreatedAtDescIdDesc(
+          String sourceCurrency, String targetCurrency);
 }

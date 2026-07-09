@@ -1,4 +1,2 @@
-/**
- * REST controllers live here.
- */
+/** REST controllers live here. */
 package com.srm.creditengine.api.controller;

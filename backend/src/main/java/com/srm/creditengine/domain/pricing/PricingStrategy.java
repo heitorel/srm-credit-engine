@@ -5,7 +5,7 @@ import com.srm.creditengine.domain.shared.Rate;
 
 public interface PricingStrategy {
 
-    boolean supports(ReceivableType receivableType);
+  boolean supports(ReceivableType receivableType);
 
-    Rate spread();
+  Rate spread();
 }
