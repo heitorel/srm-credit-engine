@@ -866,7 +866,9 @@ Verify prompt files exist:
 [ ] docs/prompts/10-frontend-statement-grid.md
 [ ] docs/prompts/11-frontend-exchange-rates.md
 [ ] docs/prompts/12-docker-and-delivery.md
-[ ] docs/prompts/13-review.md
+[ ] docs/prompts/13-frontend-settlement-ui-update.md
+[ ] docs/prompts/14-startup-test-data-seed.md
+[ ] docs/prompts/15-review.md
 ```
 
 Prompt quality:
