@@ -15,31 +15,37 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/reference-data")
 public class ReferenceDataController {
 
-    private final ListReferenceDataService listReferenceDataService;
+  private final ListReferenceDataService listReferenceDataService;
 
-    public ReferenceDataController(ListReferenceDataService listReferenceDataService) {
-        this.listReferenceDataService = listReferenceDataService;
-    }
+  public ReferenceDataController(ListReferenceDataService listReferenceDataService) {
+    this.listReferenceDataService = listReferenceDataService;
+  }
 
-    @GetMapping("/currencies")
-    @Operation(summary = "List supported currencies")
-    public CurrenciesResponse listCurrencies() {
-        List<CurrencyResponse> currencies = listReferenceDataService.listCurrencies().stream()
-                .map(currency -> new CurrencyResponse(currency.code(), currency.name(), currency.decimalPlaces()))
-                .toList();
-        return new CurrenciesResponse(currencies);
-    }
+  @GetMapping("/currencies")
+  @Operation(summary = "List supported currencies")
+  public CurrenciesResponse listCurrencies() {
+    List<CurrencyResponse> currencies =
+        listReferenceDataService.listCurrencies().stream()
+            .map(
+                currency ->
+                    new CurrencyResponse(
+                        currency.code(), currency.name(), currency.decimalPlaces()))
+            .toList();
+    return new CurrenciesResponse(currencies);
+  }
 
-    @GetMapping("/receivable-types")
-    @Operation(summary = "List supported receivable types")
-    public ReceivableTypesResponse listReceivableTypes() {
-        List<ReceivableTypeResponse> receivableTypes = listReferenceDataService.listReceivableTypes().stream()
-                .map(receivableType -> new ReceivableTypeResponse(
+  @GetMapping("/receivable-types")
+  @Operation(summary = "List supported receivable types")
+  public ReceivableTypesResponse listReceivableTypes() {
+    List<ReceivableTypeResponse> receivableTypes =
+        listReferenceDataService.listReceivableTypes().stream()
+            .map(
+                receivableType ->
+                    new ReceivableTypeResponse(
                         receivableType.code(),
                         receivableType.description(),
-                        receivableType.monthlySpread()
-                ))
-                .toList();
-        return new ReceivableTypesResponse(receivableTypes);
-    }
+                        receivableType.monthlySpread()))
+            .toList();
+    return new ReceivableTypesResponse(receivableTypes);
+  }
 }

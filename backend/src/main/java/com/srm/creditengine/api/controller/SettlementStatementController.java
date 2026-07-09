@@ -15,20 +15,22 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/settlements/statement")
 public class SettlementStatementController {
 
-    private final SettlementStatementService settlementStatementService;
+  private final SettlementStatementService settlementStatementService;
 
-    public SettlementStatementController(SettlementStatementService settlementStatementService) {
-        this.settlementStatementService = settlementStatementService;
-    }
+  public SettlementStatementController(SettlementStatementService settlementStatementService) {
+    this.settlementStatementService = settlementStatementService;
+  }
 
-    @GetMapping
-    @Operation(summary = "Get the settlement statement")
-    public PageResponse<SettlementStatementRowResponse> getStatement(
-            @ModelAttribute SettlementStatementRequest request
-    ) {
-        var resultPage = settlementStatementService.getStatement(request);
-        List<SettlementStatementRowResponse> content = resultPage.getContent().stream()
-                .map(row -> new SettlementStatementRowResponse(
+  @GetMapping
+  @Operation(summary = "Get the settlement statement")
+  public PageResponse<SettlementStatementRowResponse> getStatement(
+      @ModelAttribute SettlementStatementRequest request) {
+    var resultPage = settlementStatementService.getStatement(request);
+    List<SettlementStatementRowResponse> content =
+        resultPage.getContent().stream()
+            .map(
+                row ->
+                    new SettlementStatementRowResponse(
                         row.settlementId(),
                         row.assignorId(),
                         row.assignorName(),
@@ -40,18 +42,16 @@ public class SettlementStatementController {
                         row.totalFaceValue(),
                         row.totalPresentValue(),
                         row.totalPaymentValue(),
-                        row.settledAt()
-                ))
-                .toList();
+                        row.settledAt()))
+            .toList();
 
-        return new PageResponse<>(
-                content,
-                resultPage.getNumber(),
-                resultPage.getSize(),
-                resultPage.getTotalElements(),
-                resultPage.getTotalPages(),
-                resultPage.isFirst(),
-                resultPage.isLast()
-        );
-    }
+    return new PageResponse<>(
+        content,
+        resultPage.getNumber(),
+        resultPage.getSize(),
+        resultPage.getTotalElements(),
+        resultPage.getTotalPages(),
+        resultPage.isFirst(),
+        resultPage.isLast());
+  }
 }

@@ -17,6 +17,7 @@ Os prompts que mais aceleraram o projeto foram:
 * prompts de dominio critico: currency engine, pricing engine, settlement flow, settlement detail e statement query;
 * prompts de UX operacional: frontend simulation, frontend statement grid, exchange rates e settlement UI;
 * prompts de entrega: docker/delivery, startup test data seed e final review.
+* prompts e iteracoes de chore para configurar CI, lint e validacao automatizada final.
 
 Em termos praticos, a utilização de IA ajudou mais onde havia muito trabalho repetitivo, como:
 
@@ -34,6 +35,7 @@ Os problemas mais recorrentes nao foram "inventar features", mas sim sugerir ata
 * em dados de seed, apareceu a tentacao de inferir estados por caminhos indiretos em vez de usar os repositorios corretos;
 * em documentacao final, havia risco de afirmar sucesso de runtime antes de validar Docker e endpoints de verdade;
 * na consolidacao final, a simples renumeracao dos prompts quebraria o caminho do prompt de review se executada de forma literal e sem interpretacao.
+* na configuracao de CI, houve risco de adicionar checks que o projeto ainda nao suportava, como lint sem ferramenta instalada ou comandos de teste incompativeis com o runner real do frontend.
 
 As correcoes aplicadas seguiram sempre o mesmo criterio:
 
@@ -41,6 +43,7 @@ As correcoes aplicadas seguiram sempre o mesmo criterio:
 * checar o diff manualmente;
 * executar build, testes e smoke checks reais;
 * rejeitar qualquer atalho que ameacasse precisao financeira, atomicidade, auditabilidade ou rastreabilidade.
+* alinhar a pipeline aos comandos realmente suportados por `backend/` e `frontend/`.
 
 ## 5. Analise critica
 
@@ -52,7 +55,8 @@ Ela foi muito eficiente para:
 * acelerar scaffolding e codigo repetitivo;
 * expandir cobertura de testes sem partir do zero;
 * localizar drift entre especificacao, implementacao e README;
-* fazer a revisao final com uma checklist ampla e disciplinada.
+* fazer a revisao final com uma checklist ampla e disciplinada;
+* configurar com mais rapidez uma base consistente de lint e CI sem perder aderencia ao workflow definido nas specs.
 
 ### Onde a IA atrapalhou
 

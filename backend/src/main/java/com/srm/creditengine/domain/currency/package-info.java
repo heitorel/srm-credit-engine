@@ -1,4 +1,2 @@
-/**
- * Currency domain types.
- */
+/** Currency domain types. */
 package com.srm.creditengine.domain.currency;

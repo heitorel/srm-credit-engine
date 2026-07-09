@@ -41,21 +41,21 @@ import {
 } from '../models/settlement.models';
 import { SettlementApiService } from '../services/settlement-api.service';
 
-type SettlementFormValue = {
+interface SettlementFormValue {
   assignor: {
     name: string | null;
     document: string | null;
   };
   paymentCurrency: string | null;
   baseRate: number | null;
-  receivables: Array<{
+  receivables: {
     externalReference: string | null;
     faceValue: number | null;
     sourceCurrency: string | null;
     receivableType: string | null;
     dueDate: Date | null;
-  }>;
-};
+  }[];
+}
 
 function futureDateValidator(value: Date | null): { futureDate: true } | null {
   if (!value) {

@@ -54,176 +54,189 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class CreateSettlementService {
 
-    private final AssignorJpaRepository assignorRepository;
-    private final ReceivableJpaRepository receivableRepository;
-    private final SettlementJpaRepository settlementRepository;
-    private final SettlementItemJpaRepository settlementItemRepository;
-    private final CurrencyJpaRepository currencyRepository;
-    private final ReceivableTypeJpaRepository receivableTypeRepository;
-    private final ExchangeRateJpaRepository exchangeRateRepository;
-    private final ListReferenceDataService referenceDataService;
-    private final BaseRateResolver baseRateResolver;
-    private final PricingEngine pricingEngine;
-    private final FinancialMath financialMath;
-    private final Clock clock;
+  private final AssignorJpaRepository assignorRepository;
+  private final ReceivableJpaRepository receivableRepository;
+  private final SettlementJpaRepository settlementRepository;
+  private final SettlementItemJpaRepository settlementItemRepository;
+  private final CurrencyJpaRepository currencyRepository;
+  private final ReceivableTypeJpaRepository receivableTypeRepository;
+  private final ExchangeRateJpaRepository exchangeRateRepository;
+  private final ListReferenceDataService referenceDataService;
+  private final BaseRateResolver baseRateResolver;
+  private final PricingEngine pricingEngine;
+  private final FinancialMath financialMath;
+  private final Clock clock;
 
-    public CreateSettlementService(
-            AssignorJpaRepository assignorRepository,
-            ReceivableJpaRepository receivableRepository,
-            SettlementJpaRepository settlementRepository,
-            SettlementItemJpaRepository settlementItemRepository,
-            CurrencyJpaRepository currencyRepository,
-            ReceivableTypeJpaRepository receivableTypeRepository,
-            ExchangeRateJpaRepository exchangeRateRepository,
-            ListReferenceDataService referenceDataService,
-            BaseRateResolver baseRateResolver,
-            PricingEngine pricingEngine,
-            FinancialMath financialMath,
-            Clock clock
-    ) {
-        this.assignorRepository = assignorRepository;
-        this.receivableRepository = receivableRepository;
-        this.settlementRepository = settlementRepository;
-        this.settlementItemRepository = settlementItemRepository;
-        this.currencyRepository = currencyRepository;
-        this.receivableTypeRepository = receivableTypeRepository;
-        this.exchangeRateRepository = exchangeRateRepository;
-        this.referenceDataService = referenceDataService;
-        this.baseRateResolver = baseRateResolver;
-        this.pricingEngine = pricingEngine;
-        this.financialMath = financialMath;
-        this.clock = clock;
+  public CreateSettlementService(
+      AssignorJpaRepository assignorRepository,
+      ReceivableJpaRepository receivableRepository,
+      SettlementJpaRepository settlementRepository,
+      SettlementItemJpaRepository settlementItemRepository,
+      CurrencyJpaRepository currencyRepository,
+      ReceivableTypeJpaRepository receivableTypeRepository,
+      ExchangeRateJpaRepository exchangeRateRepository,
+      ListReferenceDataService referenceDataService,
+      BaseRateResolver baseRateResolver,
+      PricingEngine pricingEngine,
+      FinancialMath financialMath,
+      Clock clock) {
+    this.assignorRepository = assignorRepository;
+    this.receivableRepository = receivableRepository;
+    this.settlementRepository = settlementRepository;
+    this.settlementItemRepository = settlementItemRepository;
+    this.currencyRepository = currencyRepository;
+    this.receivableTypeRepository = receivableTypeRepository;
+    this.exchangeRateRepository = exchangeRateRepository;
+    this.referenceDataService = referenceDataService;
+    this.baseRateResolver = baseRateResolver;
+    this.pricingEngine = pricingEngine;
+    this.financialMath = financialMath;
+    this.clock = clock;
+  }
+
+  @Transactional
+  public Settlement create(CreateSettlementRequest request) {
+    validateDuplicateReferences(request.receivables());
+
+    CurrencyCode paymentCurrency =
+        referenceDataService.requireSupportedCurrency(request.paymentCurrency(), "paymentCurrency");
+    Rate baseRate = baseRateResolver.resolve(request.baseRate());
+    Instant settlementInstant = Instant.now(clock);
+    LocalDate pricingDate = LocalDate.now(clock);
+    LocalDateTime settlementDateTime = toUtcDateTime(settlementInstant);
+
+    AssignorEntity assignorEntity = resolveAssignor(request.assignor(), settlementDateTime);
+    CurrencyCode sourceCurrency = validateAndResolveCommonSourceCurrency(request.receivables());
+
+    CurrencyEntity sourceCurrencyEntity =
+        currencyRepository.getReferenceById(sourceCurrency.value());
+    CurrencyEntity paymentCurrencyEntity =
+        currencyRepository.getReferenceById(paymentCurrency.value());
+
+    List<ResolvedItem> resolvedItems = new ArrayList<>();
+
+    for (int index = 0; index < request.receivables().size(); index++) {
+      ReceivableSettlementRequest itemRequest = request.receivables().get(index);
+      resolvedItems.add(
+          resolveItem(
+              assignorEntity,
+              itemRequest,
+              index,
+              sourceCurrency,
+              paymentCurrency,
+              baseRate,
+              pricingDate,
+              settlementInstant,
+              settlementDateTime));
     }
 
-    @Transactional
-    public Settlement create(CreateSettlementRequest request) {
-        validateDuplicateReferences(request.receivables());
+    try {
+      receivableRepository.saveAll(
+          resolvedItems.stream().map(ResolvedItem::receivableEntity).toList());
 
-        CurrencyCode paymentCurrency = referenceDataService.requireSupportedCurrency(
-                request.paymentCurrency(),
-                "paymentCurrency"
-        );
-        Rate baseRate = baseRateResolver.resolve(request.baseRate());
-        Instant settlementInstant = Instant.now(clock);
-        LocalDate pricingDate = LocalDate.now(clock);
-        LocalDateTime settlementDateTime = toUtcDateTime(settlementInstant);
+      SettlementEntity settlementEntity =
+          settlementRepository.save(
+              SettlementEntity.create(
+                  UUID.randomUUID().toString(),
+                  assignorEntity,
+                  sourceCurrencyEntity,
+                  paymentCurrencyEntity,
+                  SettlementStatus.SETTLED.name(),
+                  financialMath.roundRate(baseRate.value()),
+                  resolvedItems.size(),
+                  totalFaceValue(resolvedItems),
+                  totalPresentValue(resolvedItems),
+                  totalPaymentValue(resolvedItems),
+                  settlementDateTime,
+                  settlementDateTime,
+                  settlementDateTime));
 
-        AssignorEntity assignorEntity = resolveAssignor(request.assignor(), settlementDateTime);
-        CurrencyCode sourceCurrency = validateAndResolveCommonSourceCurrency(request.receivables());
+      List<SettlementItemEntity> savedItems =
+          settlementItemRepository.saveAll(
+              resolvedItems.stream()
+                  .map(item -> item.toSettlementItemEntity(settlementEntity, paymentCurrencyEntity))
+                  .toList());
 
-        CurrencyEntity sourceCurrencyEntity = currencyRepository.getReferenceById(sourceCurrency.value());
-        CurrencyEntity paymentCurrencyEntity = currencyRepository.getReferenceById(paymentCurrency.value());
+      return toDomainSettlement(settlementEntity, savedItems);
+    } catch (DataIntegrityViolationException | ObjectOptimisticLockingFailureException exception) {
+      throw new DuplicateSettlementException();
+    }
+  }
 
-        List<ResolvedItem> resolvedItems = new ArrayList<>();
+  private AssignorEntity resolveAssignor(AssignorRequest request, LocalDateTime now) {
+    String normalizedDocument = normalize(request.document());
+    Optional<AssignorEntity> existing =
+        normalizedDocument == null
+            ? Optional.empty()
+            : assignorRepository.findFirstByDocument(normalizedDocument);
 
-        for (int index = 0; index < request.receivables().size(); index++) {
-            ReceivableSettlementRequest itemRequest = request.receivables().get(index);
-            resolvedItems.add(resolveItem(
-                    assignorEntity,
-                    itemRequest,
-                    index,
-                    sourceCurrency,
-                    paymentCurrency,
-                    baseRate,
-                    pricingDate,
-                    settlementInstant,
-                    settlementDateTime
-            ));
-        }
-
-        try {
-            receivableRepository.saveAll(resolvedItems.stream().map(ResolvedItem::receivableEntity).toList());
-
-            SettlementEntity settlementEntity = settlementRepository.save(SettlementEntity.create(
+    return existing.orElseGet(
+        () ->
+            assignorRepository.save(
+                AssignorEntity.create(
                     UUID.randomUUID().toString(),
-                    assignorEntity,
-                    sourceCurrencyEntity,
-                    paymentCurrencyEntity,
-                    SettlementStatus.SETTLED.name(),
-                    financialMath.roundRate(baseRate.value()),
-                    resolvedItems.size(),
-                    totalFaceValue(resolvedItems),
-                    totalPresentValue(resolvedItems),
-                    totalPaymentValue(resolvedItems),
-                    settlementDateTime,
-                    settlementDateTime,
-                    settlementDateTime
-            ));
+                    request.name().trim(),
+                    normalizedDocument,
+                    now,
+                    now)));
+  }
 
-            List<SettlementItemEntity> savedItems = settlementItemRepository.saveAll(
-                    resolvedItems.stream()
-                            .map(item -> item.toSettlementItemEntity(settlementEntity, paymentCurrencyEntity))
-                            .toList()
-            );
+  private CurrencyCode validateAndResolveCommonSourceCurrency(
+      List<ReceivableSettlementRequest> receivables) {
+    Set<String> uniqueCurrencies = new HashSet<>();
+    CurrencyCode resolvedSourceCurrency = null;
 
-            return toDomainSettlement(settlementEntity, savedItems);
-        } catch (DataIntegrityViolationException | ObjectOptimisticLockingFailureException exception) {
-            throw new DuplicateSettlementException();
-        }
+    for (int index = 0; index < receivables.size(); index++) {
+      CurrencyCode currency =
+          referenceDataService.requireSupportedCurrency(
+              receivables.get(index).sourceCurrency(),
+              "receivables[%d].sourceCurrency".formatted(index));
+      uniqueCurrencies.add(currency.value());
+      if (resolvedSourceCurrency == null) {
+        resolvedSourceCurrency = currency;
+      }
     }
 
-    private AssignorEntity resolveAssignor(AssignorRequest request, LocalDateTime now) {
-        String normalizedDocument = normalize(request.document());
-        Optional<AssignorEntity> existing = normalizedDocument == null
-                ? Optional.empty()
-                : assignorRepository.findFirstByDocument(normalizedDocument);
-
-        return existing.orElseGet(() -> assignorRepository.save(AssignorEntity.create(
-                UUID.randomUUID().toString(),
-                request.name().trim(),
-                normalizedDocument,
-                now,
-                now
-        )));
+    if (uniqueCurrencies.size() > 1) {
+      throw new MixedSourceCurrencyException();
     }
 
-    private CurrencyCode validateAndResolveCommonSourceCurrency(List<ReceivableSettlementRequest> receivables) {
-        Set<String> uniqueCurrencies = new HashSet<>();
-        CurrencyCode resolvedSourceCurrency = null;
+    return resolvedSourceCurrency;
+  }
 
-        for (int index = 0; index < receivables.size(); index++) {
-            CurrencyCode currency = referenceDataService.requireSupportedCurrency(
-                    receivables.get(index).sourceCurrency(),
-                    "receivables[%d].sourceCurrency".formatted(index)
-            );
-            uniqueCurrencies.add(currency.value());
-            if (resolvedSourceCurrency == null) {
-                resolvedSourceCurrency = currency;
-            }
-        }
+  private ResolvedItem resolveItem(
+      AssignorEntity assignorEntity,
+      ReceivableSettlementRequest request,
+      int itemIndex,
+      CurrencyCode sourceCurrency,
+      CurrencyCode paymentCurrency,
+      Rate baseRate,
+      LocalDate pricingDate,
+      Instant calculatedAt,
+      LocalDateTime calculatedAtDateTime) {
+    Money faceValue =
+        Money.positive(
+            request.faceValue(),
+            sourceCurrency,
+            "receivables[%d].faceValue".formatted(itemIndex),
+            "Face value");
+    ReceivableType.from(request.receivableType());
+    ReceivableTypeEntity receivableTypeEntity =
+        receivableTypeRepository
+            .findById(request.receivableType())
+            .orElseThrow(
+                () ->
+                    new com.srm.creditengine.domain.pricing.UnsupportedReceivableTypeException(
+                        request.receivableType()));
 
-        if (uniqueCurrencies.size() > 1) {
-            throw new MixedSourceCurrencyException();
-        }
-
-        return resolvedSourceCurrency;
-    }
-
-    private ResolvedItem resolveItem(
-            AssignorEntity assignorEntity,
-            ReceivableSettlementRequest request,
-            int itemIndex,
-            CurrencyCode sourceCurrency,
-            CurrencyCode paymentCurrency,
-            Rate baseRate,
-            LocalDate pricingDate,
-            Instant calculatedAt,
-            LocalDateTime calculatedAtDateTime
-    ) {
-        Money faceValue = Money.positive(
-                request.faceValue(),
-                sourceCurrency,
-                "receivables[%d].faceValue".formatted(itemIndex),
-                "Face value"
-        );
-        ReceivableType.from(request.receivableType());
-        ReceivableTypeEntity receivableTypeEntity = receivableTypeRepository.findById(request.receivableType())
-                .orElseThrow(() -> new com.srm.creditengine.domain.pricing.UnsupportedReceivableTypeException(request.receivableType()));
-
-        ReceivableEntity receivableEntity = receivableRepository
-                .findByAssignor_IdAndExternalReference(assignorEntity.getId(), request.externalReference())
-                .map(existing -> validateExistingReceivable(existing, request, itemIndex))
-                .orElseGet(() -> ReceivableEntity.create(
+    ReceivableEntity receivableEntity =
+        receivableRepository
+            .findByAssignor_IdAndExternalReference(
+                assignorEntity.getId(), request.externalReference())
+            .map(existing -> validateExistingReceivable(existing, request, itemIndex))
+            .orElseGet(
+                () ->
+                    ReceivableEntity.create(
                         UUID.randomUUID().toString(),
                         assignorEntity,
                         request.externalReference().trim(),
@@ -233,216 +246,211 @@ public class CreateSettlementService {
                         request.dueDate(),
                         ReceivableStatus.AVAILABLE.name(),
                         calculatedAtDateTime,
-                        calculatedAtDateTime
-                ));
+                        calculatedAtDateTime));
 
-        validateReceivableStatus(assignorEntity, receivableEntity, itemIndex);
+    validateReceivableStatus(assignorEntity, receivableEntity, itemIndex);
 
-        Term term = Term.between(pricingDate, request.dueDate());
-        Rate exchangeRate = sourceCurrency.value().equals(paymentCurrency.value())
-                ? null
-                : exchangeRateRepository.findFirstBySourceCurrency_CodeAndTargetCurrency_CodeOrderByValidAtDescCreatedAtDescIdDesc(
-                                sourceCurrency.value(),
-                                paymentCurrency.value()
-                        )
-                        .map(ExchangeRateEntity::toResult)
-                        .map(result -> Rate.positive(result.rate(), "paymentCurrency", "Exchange rate"))
-                        .orElse(null);
+    Term term = Term.between(pricingDate, request.dueDate());
+    Rate exchangeRate =
+        sourceCurrency.value().equals(paymentCurrency.value())
+            ? null
+            : exchangeRateRepository
+                .findFirstBySourceCurrency_CodeAndTargetCurrency_CodeOrderByValidAtDescCreatedAtDescIdDesc(
+                    sourceCurrency.value(), paymentCurrency.value())
+                .map(ExchangeRateEntity::toResult)
+                .map(result -> Rate.positive(result.rate(), "paymentCurrency", "Exchange rate"))
+                .orElse(null);
 
-        PricingResult pricingResult = pricingEngine.price(new PricingContext(
+    PricingResult pricingResult =
+        pricingEngine.price(
+            new PricingContext(
                 faceValue,
                 paymentCurrency,
                 baseRate,
                 request.receivableType(),
                 term,
                 exchangeRate,
-                calculatedAt
-        ));
+                calculatedAt));
 
-        receivableEntity.markAsSettled(calculatedAtDateTime);
+    receivableEntity.markAsSettled(calculatedAtDateTime);
 
-        return new ResolvedItem(receivableEntity, receivableTypeEntity, pricingResult, calculatedAtDateTime);
+    return new ResolvedItem(
+        receivableEntity, receivableTypeEntity, pricingResult, calculatedAtDateTime);
+  }
+
+  private ReceivableEntity validateExistingReceivable(
+      ReceivableEntity existing, ReceivableSettlementRequest request, int itemIndex) {
+    List<ApiErrorDetail> mismatches = new ArrayList<>();
+
+    if (existing.getFaceValue().compareTo(request.faceValue()) != 0) {
+      mismatches.add(
+          new ApiErrorDetail(
+              "receivables[%d].faceValue".formatted(itemIndex),
+              "Face value does not match the existing receivable."));
+    }
+    if (!existing.getCurrency().getCode().equals(request.sourceCurrency())) {
+      mismatches.add(
+          new ApiErrorDetail(
+              "receivables[%d].sourceCurrency".formatted(itemIndex),
+              "Source currency does not match the existing receivable."));
+    }
+    if (!existing.getReceivableType().getCode().equals(request.receivableType())) {
+      mismatches.add(
+          new ApiErrorDetail(
+              "receivables[%d].receivableType".formatted(itemIndex),
+              "Receivable type does not match the existing receivable."));
+    }
+    if (!existing.getDueDate().equals(request.dueDate())) {
+      mismatches.add(
+          new ApiErrorDetail(
+              "receivables[%d].dueDate".formatted(itemIndex),
+              "Due date does not match the existing receivable."));
     }
 
-    private ReceivableEntity validateExistingReceivable(
-            ReceivableEntity existing,
-            ReceivableSettlementRequest request,
-            int itemIndex
-    ) {
-        List<ApiErrorDetail> mismatches = new ArrayList<>();
-
-        if (existing.getFaceValue().compareTo(request.faceValue()) != 0) {
-            mismatches.add(new ApiErrorDetail(
-                    "receivables[%d].faceValue".formatted(itemIndex),
-                    "Face value does not match the existing receivable."
-            ));
-        }
-        if (!existing.getCurrency().getCode().equals(request.sourceCurrency())) {
-            mismatches.add(new ApiErrorDetail(
-                    "receivables[%d].sourceCurrency".formatted(itemIndex),
-                    "Source currency does not match the existing receivable."
-            ));
-        }
-        if (!existing.getReceivableType().getCode().equals(request.receivableType())) {
-            mismatches.add(new ApiErrorDetail(
-                    "receivables[%d].receivableType".formatted(itemIndex),
-                    "Receivable type does not match the existing receivable."
-            ));
-        }
-        if (!existing.getDueDate().equals(request.dueDate())) {
-            mismatches.add(new ApiErrorDetail(
-                    "receivables[%d].dueDate".formatted(itemIndex),
-                    "Due date does not match the existing receivable."
-            ));
-        }
-
-        if (!mismatches.isEmpty()) {
-            throw new InvalidSettlementBatchException(
-                    "Settlement request contains receivable data that conflicts with existing records.",
-                    mismatches
-            );
-        }
-
-        return existing;
+    if (!mismatches.isEmpty()) {
+      throw new InvalidSettlementBatchException(
+          "Settlement request contains receivable data that conflicts with existing records.",
+          mismatches);
     }
 
-    private void validateReceivableStatus(AssignorEntity assignorEntity, ReceivableEntity receivableEntity, int itemIndex) {
-        ReceivableStatus status = ReceivableStatus.from(receivableEntity.getStatus());
-        if (status == ReceivableStatus.SETTLED) {
-            throw new DuplicateSettlementException(
-                    receivableEntity.getExternalReference(),
-                    itemIndex,
-                    assignorIdentifier(assignorEntity)
-            );
-        }
-        if (status == ReceivableStatus.CANCELLED) {
-            throw new InvalidSettlementBatchException(
-                    "Only AVAILABLE receivables may be settled.",
-                    List.of(new ApiErrorDetail(
-                            "receivables[%d].externalReference".formatted(itemIndex),
-                            "Cancelled receivables cannot be settled."
-                    ))
-            );
-        }
-    }
+    return existing;
+  }
 
-    private void validateDuplicateReferences(List<ReceivableSettlementRequest> receivables) {
-        Set<String> seenReferences = new HashSet<>();
-        for (int index = 0; index < receivables.size(); index++) {
-            String reference = receivables.get(index).externalReference().trim();
-            if (!seenReferences.add(reference)) {
-                throw new InvalidSettlementBatchException(
-                        "Settlement batch contains duplicate receivables.",
-                        List.of(new ApiErrorDetail(
-                                "receivables[%d].externalReference".formatted(index),
-                                "Duplicate receivable references are not allowed in the same request."
-                        ))
-                );
-            }
-        }
+  private void validateReceivableStatus(
+      AssignorEntity assignorEntity, ReceivableEntity receivableEntity, int itemIndex) {
+    ReceivableStatus status = ReceivableStatus.from(receivableEntity.getStatus());
+    if (status == ReceivableStatus.SETTLED) {
+      throw new DuplicateSettlementException(
+          receivableEntity.getExternalReference(), itemIndex, assignorIdentifier(assignorEntity));
     }
+    if (status == ReceivableStatus.CANCELLED) {
+      throw new InvalidSettlementBatchException(
+          "Only AVAILABLE receivables may be settled.",
+          List.of(
+              new ApiErrorDetail(
+                  "receivables[%d].externalReference".formatted(itemIndex),
+                  "Cancelled receivables cannot be settled.")));
+    }
+  }
 
-    private BigDecimal totalFaceValue(List<ResolvedItem> items) {
-        return financialMath.roundMoney(items.stream()
-                .map(item -> item.pricingResult().faceValue())
-                .reduce(BigDecimal.ZERO, BigDecimal::add));
+  private void validateDuplicateReferences(List<ReceivableSettlementRequest> receivables) {
+    Set<String> seenReferences = new HashSet<>();
+    for (int index = 0; index < receivables.size(); index++) {
+      String reference = receivables.get(index).externalReference().trim();
+      if (!seenReferences.add(reference)) {
+        throw new InvalidSettlementBatchException(
+            "Settlement batch contains duplicate receivables.",
+            List.of(
+                new ApiErrorDetail(
+                    "receivables[%d].externalReference".formatted(index),
+                    "Duplicate receivable references are not allowed in the same request.")));
+      }
     }
+  }
 
-    private BigDecimal totalPresentValue(List<ResolvedItem> items) {
-        return financialMath.roundMoney(items.stream()
-                .map(item -> item.pricingResult().presentValueInSourceCurrency())
-                .reduce(BigDecimal.ZERO, BigDecimal::add));
-    }
+  private BigDecimal totalFaceValue(List<ResolvedItem> items) {
+    return financialMath.roundMoney(
+        items.stream()
+            .map(item -> item.pricingResult().faceValue())
+            .reduce(BigDecimal.ZERO, BigDecimal::add));
+  }
 
-    private BigDecimal totalPaymentValue(List<ResolvedItem> items) {
-        return financialMath.roundMoney(items.stream()
-                .map(item -> item.pricingResult().netPaymentValue())
-                .reduce(BigDecimal.ZERO, BigDecimal::add));
-    }
+  private BigDecimal totalPresentValue(List<ResolvedItem> items) {
+    return financialMath.roundMoney(
+        items.stream()
+            .map(item -> item.pricingResult().presentValueInSourceCurrency())
+            .reduce(BigDecimal.ZERO, BigDecimal::add));
+  }
 
-    private Settlement toDomainSettlement(SettlementEntity settlementEntity, List<SettlementItemEntity> itemEntities) {
-        return new Settlement(
-                UUID.fromString(settlementEntity.getId()),
-                new Assignor(
-                        UUID.fromString(settlementEntity.getAssignor().getId()),
-                        settlementEntity.getAssignor().getName(),
-                        settlementEntity.getAssignor().getDocument()
-                ),
-                settlementEntity.getSourceCurrency().getCode(),
-                settlementEntity.getPaymentCurrency().getCode(),
-                SettlementStatus.valueOf(settlementEntity.getStatus()),
-                settlementEntity.getBaseRate(),
-                settlementEntity.getItemCount(),
-                settlementEntity.getTotalFaceValue(),
-                settlementEntity.getTotalPresentValue(),
-                settlementEntity.getTotalPaymentValue(),
-                settlementEntity.getSettledAt().toInstant(ZoneOffset.UTC),
-                itemEntities.stream().map(this::toDomainItem).toList()
-        );
-    }
+  private BigDecimal totalPaymentValue(List<ResolvedItem> items) {
+    return financialMath.roundMoney(
+        items.stream()
+            .map(item -> item.pricingResult().netPaymentValue())
+            .reduce(BigDecimal.ZERO, BigDecimal::add));
+  }
 
-    private SettlementItem toDomainItem(SettlementItemEntity itemEntity) {
-        return new SettlementItem(
-                UUID.fromString(itemEntity.getId()),
-                UUID.fromString(itemEntity.getReceivable().getId()),
-                itemEntity.getExternalReference(),
-                itemEntity.getReceivableType().getCode(),
-                itemEntity.getFaceValue(),
-                itemEntity.getSourceCurrency().getCode(),
-                itemEntity.getPaymentCurrency().getCode(),
-                itemEntity.getBaseRate(),
-                itemEntity.getSpread(),
-                itemEntity.getTermInMonths(),
-                itemEntity.getPresentValueSource(),
-                itemEntity.getDiscountValue(),
-                itemEntity.getPaymentValue(),
-                itemEntity.getExchangeRate(),
-                itemEntity.getCalculatedAt().toInstant(ZoneOffset.UTC)
-        );
-    }
+  private Settlement toDomainSettlement(
+      SettlementEntity settlementEntity, List<SettlementItemEntity> itemEntities) {
+    return new Settlement(
+        UUID.fromString(settlementEntity.getId()),
+        new Assignor(
+            UUID.fromString(settlementEntity.getAssignor().getId()),
+            settlementEntity.getAssignor().getName(),
+            settlementEntity.getAssignor().getDocument()),
+        settlementEntity.getSourceCurrency().getCode(),
+        settlementEntity.getPaymentCurrency().getCode(),
+        SettlementStatus.valueOf(settlementEntity.getStatus()),
+        settlementEntity.getBaseRate(),
+        settlementEntity.getItemCount(),
+        settlementEntity.getTotalFaceValue(),
+        settlementEntity.getTotalPresentValue(),
+        settlementEntity.getTotalPaymentValue(),
+        settlementEntity.getSettledAt().toInstant(ZoneOffset.UTC),
+        itemEntities.stream().map(this::toDomainItem).toList());
+  }
 
-    private String assignorIdentifier(AssignorEntity assignorEntity) {
-        return assignorEntity.getDocument() != null ? assignorEntity.getDocument() : assignorEntity.getName();
-    }
+  private SettlementItem toDomainItem(SettlementItemEntity itemEntity) {
+    return new SettlementItem(
+        UUID.fromString(itemEntity.getId()),
+        UUID.fromString(itemEntity.getReceivable().getId()),
+        itemEntity.getExternalReference(),
+        itemEntity.getReceivableType().getCode(),
+        itemEntity.getFaceValue(),
+        itemEntity.getSourceCurrency().getCode(),
+        itemEntity.getPaymentCurrency().getCode(),
+        itemEntity.getBaseRate(),
+        itemEntity.getSpread(),
+        itemEntity.getTermInMonths(),
+        itemEntity.getPresentValueSource(),
+        itemEntity.getDiscountValue(),
+        itemEntity.getPaymentValue(),
+        itemEntity.getExchangeRate(),
+        itemEntity.getCalculatedAt().toInstant(ZoneOffset.UTC));
+  }
 
-    private static LocalDateTime toUtcDateTime(Instant instant) {
-        return LocalDateTime.ofInstant(instant, ZoneOffset.UTC);
-    }
+  private String assignorIdentifier(AssignorEntity assignorEntity) {
+    return assignorEntity.getDocument() != null
+        ? assignorEntity.getDocument()
+        : assignorEntity.getName();
+  }
 
-    private static String normalize(String value) {
-        if (value == null) {
-            return null;
-        }
-        String normalized = value.trim();
-        return normalized.isEmpty() ? null : normalized;
-    }
+  private static LocalDateTime toUtcDateTime(Instant instant) {
+    return LocalDateTime.ofInstant(instant, ZoneOffset.UTC);
+  }
 
-    private record ResolvedItem(
-            ReceivableEntity receivableEntity,
-            ReceivableTypeEntity receivableTypeEntity,
-            PricingResult pricingResult,
-            LocalDateTime createdAt
-    ) {
-        SettlementItemEntity toSettlementItemEntity(SettlementEntity settlementEntity, CurrencyEntity paymentCurrencyEntity) {
-            return SettlementItemEntity.create(
-                    UUID.randomUUID().toString(),
-                    settlementEntity,
-                    receivableEntity,
-                    receivableEntity.getExternalReference(),
-                    receivableTypeEntity,
-                    pricingResult.faceValue(),
-                    receivableEntity.getCurrency(),
-                    paymentCurrencyEntity,
-                    pricingResult.baseRate(),
-                    pricingResult.spread(),
-                    pricingResult.termInMonths(),
-                    pricingResult.presentValueInSourceCurrency(),
-                    pricingResult.discountValue(),
-                    pricingResult.netPaymentValue(),
-                    pricingResult.exchangeRate(),
-                    toUtcDateTime(pricingResult.calculatedAt()),
-                    createdAt
-            );
-        }
+  private static String normalize(String value) {
+    if (value == null) {
+      return null;
     }
+    String normalized = value.trim();
+    return normalized.isEmpty() ? null : normalized;
+  }
+
+  private record ResolvedItem(
+      ReceivableEntity receivableEntity,
+      ReceivableTypeEntity receivableTypeEntity,
+      PricingResult pricingResult,
+      LocalDateTime createdAt) {
+    SettlementItemEntity toSettlementItemEntity(
+        SettlementEntity settlementEntity, CurrencyEntity paymentCurrencyEntity) {
+      return SettlementItemEntity.create(
+          UUID.randomUUID().toString(),
+          settlementEntity,
+          receivableEntity,
+          receivableEntity.getExternalReference(),
+          receivableTypeEntity,
+          pricingResult.faceValue(),
+          receivableEntity.getCurrency(),
+          paymentCurrencyEntity,
+          pricingResult.baseRate(),
+          pricingResult.spread(),
+          pricingResult.termInMonths(),
+          pricingResult.presentValueInSourceCurrency(),
+          pricingResult.discountValue(),
+          pricingResult.netPaymentValue(),
+          pricingResult.exchangeRate(),
+          toUtcDateTime(pricingResult.calculatedAt()),
+          createdAt);
+    }
+  }
 }

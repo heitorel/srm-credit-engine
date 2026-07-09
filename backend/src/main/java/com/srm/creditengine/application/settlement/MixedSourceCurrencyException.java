@@ -6,13 +6,12 @@ import java.util.List;
 
 public class MixedSourceCurrencyException extends UnprocessableEntityException {
 
-    public MixedSourceCurrencyException() {
-        super(
-                "All receivables in the settlement batch must share the same source currency.",
-                List.of(new ApiErrorDetail(
-                        "receivables",
-                        "Mixed source currencies are not allowed in the same settlement batch."
-                ))
-        );
-    }
+  public MixedSourceCurrencyException() {
+    super(
+        "All receivables in the settlement batch must share the same source currency.",
+        List.of(
+            new ApiErrorDetail(
+                "receivables",
+                "Mixed source currencies are not allowed in the same settlement batch.")));
+  }
 }

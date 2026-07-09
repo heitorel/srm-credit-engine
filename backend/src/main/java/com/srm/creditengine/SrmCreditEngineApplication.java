@@ -8,8 +8,7 @@ import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
 @ConfigurationPropertiesScan
 public class SrmCreditEngineApplication {
 
-    public static void main(String[] args) {
-        SpringApplication.run(SrmCreditEngineApplication.class, args);
-    }
-
+  public static void main(String[] args) {
+    SpringApplication.run(SrmCreditEngineApplication.class, args);
+  }
 }

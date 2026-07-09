@@ -6,7 +6,7 @@ import java.util.List;
 
 public class InvalidPaginationException extends BadRequestException {
 
-    public InvalidPaginationException(String field, String message) {
-        super("Invalid pagination parameters.", List.of(new ApiErrorDetail(field, message)));
-    }
+  public InvalidPaginationException(String field, String message) {
+    super("Invalid pagination parameters.", List.of(new ApiErrorDetail(field, message)));
+  }
 }

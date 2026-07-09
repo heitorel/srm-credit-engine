@@ -6,13 +6,12 @@ import java.util.List;
 
 public class UnsupportedReceivableTypeException extends UnprocessableEntityException {
 
-    public UnsupportedReceivableTypeException(String receivableType) {
-        super(
-                "Unsupported receivable type: " + receivableType + ".",
-                List.of(new ApiErrorDetail(
-                        "receivableType",
-                        "Supported receivable types are MERCANTILE_DUPLICATE and POST_DATED_CHECK."
-                ))
-        );
-    }
+  public UnsupportedReceivableTypeException(String receivableType) {
+    super(
+        "Unsupported receivable type: " + receivableType + ".",
+        List.of(
+            new ApiErrorDetail(
+                "receivableType",
+                "Supported receivable types are MERCANTILE_DUPLICATE and POST_DATED_CHECK.")));
+  }
 }

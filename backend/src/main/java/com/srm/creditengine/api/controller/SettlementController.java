@@ -21,31 +21,31 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/settlements")
 public class SettlementController {
 
-    private final CreateSettlementService createSettlementService;
-    private final GetSettlementService getSettlementService;
-    private final SettlementResponseMapper settlementResponseMapper;
+  private final CreateSettlementService createSettlementService;
+  private final GetSettlementService getSettlementService;
+  private final SettlementResponseMapper settlementResponseMapper;
 
-    public SettlementController(
-            CreateSettlementService createSettlementService,
-            GetSettlementService getSettlementService,
-            SettlementResponseMapper settlementResponseMapper
-    ) {
-        this.createSettlementService = createSettlementService;
-        this.getSettlementService = getSettlementService;
-        this.settlementResponseMapper = settlementResponseMapper;
-    }
+  public SettlementController(
+      CreateSettlementService createSettlementService,
+      GetSettlementService getSettlementService,
+      SettlementResponseMapper settlementResponseMapper) {
+    this.createSettlementService = createSettlementService;
+    this.getSettlementService = getSettlementService;
+    this.settlementResponseMapper = settlementResponseMapper;
+  }
 
-    @PostMapping
-    @Operation(summary = "Create a settlement batch")
-    public ResponseEntity<SettlementResponse> create(@Valid @RequestBody CreateSettlementRequest request) {
-        var settlement = createSettlementService.create(request);
-        return ResponseEntity.created(URI.create("/api/settlements/" + settlement.id()))
-                .body(settlementResponseMapper.toResponse(settlement));
-    }
+  @PostMapping
+  @Operation(summary = "Create a settlement batch")
+  public ResponseEntity<SettlementResponse> create(
+      @Valid @RequestBody CreateSettlementRequest request) {
+    var settlement = createSettlementService.create(request);
+    return ResponseEntity.created(URI.create("/api/settlements/" + settlement.id()))
+        .body(settlementResponseMapper.toResponse(settlement));
+  }
 
-    @GetMapping("/{id}")
-    @Operation(summary = "Get settlement details by id")
-    public SettlementResponse getById(@PathVariable UUID id) {
-        return settlementResponseMapper.toResponse(getSettlementService.getById(id));
-    }
+  @GetMapping("/{id}")
+  @Operation(summary = "Get settlement details by id")
+  public SettlementResponse getById(@PathVariable UUID id) {
+    return settlementResponseMapper.toResponse(getSettlementService.getById(id));
+  }
 }

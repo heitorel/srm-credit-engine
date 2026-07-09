@@ -6,7 +6,7 @@ import java.util.List;
 
 public class InvalidSettlementBatchException extends UnprocessableEntityException {
 
-    public InvalidSettlementBatchException(String message, List<ApiErrorDetail> details) {
-        super(message, details);
-    }
+  public InvalidSettlementBatchException(String message, List<ApiErrorDetail> details) {
+    super(message, details);
+  }
 }

@@ -1,4 +1,2 @@
-/**
- * Persistence mappings live here.
- */
+/** Persistence mappings live here. */
 package com.srm.creditengine.infrastructure.persistence;

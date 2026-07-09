@@ -281,6 +281,27 @@ Backend:
 
 ```bash
 cd backend
+./mvnw spotless:check test
+```
+
+Aplicacao automatica de formatacao Java:
+
+```bash
+cd backend
+./mvnw spotless:apply
+```
+
+Frontend lint:
+
+```bash
+cd frontend
+npm run lint
+```
+
+Backend tests only:
+
+```bash
+cd backend
 ./mvnw test
 ```
 
@@ -301,6 +322,18 @@ npm test -- --watch=false
 Observacao:
 
 * o frontend usa `ng test` com runner baseado em Vitest na implementacao atual.
+
+## GitHub Actions CI
+
+O repositório inclui uma pipeline simples em [`.github/workflows/ci.yml`](C:/Users/heito/Documents/GitHub/srm-credit-engine/.github/workflows/ci.yml) para validar o projeto em pushes e Pull Requests para `develop` e `main`.
+
+Checks atuais:
+
+* backend: `./mvnw spotless:check test`
+* frontend: `npm ci`
+* frontend: `npm run lint`
+* frontend: `npm test -- --watch=false`
+* frontend: `npm run build`
 
 Docker Compose:
 
@@ -362,7 +395,7 @@ Referencias:
 * nao ha integracao bancaria real;
 * `DEFAULT_BASE_RATE` depende de configuracao;
 * mixed-source-currency batches sao rejeitados em vez de suportados;
-* nao ha pipeline CI/CD nem deploy cloud como requisito central;
+* nao ha deploy cloud ou automacao de release como requisito central;
 * observabilidade avancada e integracoes externas ficaram fora do escopo inicial.
 
 ## Future Improvements
@@ -372,6 +405,6 @@ Referencias:
 * integracao com provedor real de exchange rates;
 * approval workflow para settlements;
 * exportacao do statement;
-* CI/CD automatizado;
+* release automatizado com tag e changelog;
 * metricas, tracing e health checks mais completos;
 * estrategias de escala para consultas historicas.

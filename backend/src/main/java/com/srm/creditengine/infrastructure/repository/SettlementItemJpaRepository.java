@@ -6,5 +6,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface SettlementItemJpaRepository extends JpaRepository<SettlementItemEntity, String> {
 
-    List<SettlementItemEntity> findBySettlement_IdOrderByCreatedAtAscIdAsc(String settlementId);
+  List<SettlementItemEntity> findBySettlement_IdOrderByCreatedAtAscIdAsc(String settlementId);
 }

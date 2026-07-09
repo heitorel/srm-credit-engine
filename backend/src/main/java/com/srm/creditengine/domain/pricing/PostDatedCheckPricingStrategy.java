@@ -8,15 +8,15 @@ import org.springframework.stereotype.Component;
 @Component
 public class PostDatedCheckPricingStrategy implements PricingStrategy {
 
-    private static final Rate SPREAD = new Rate(new BigDecimal("0.02500000"));
+  private static final Rate SPREAD = new Rate(new BigDecimal("0.02500000"));
 
-    @Override
-    public boolean supports(ReceivableType receivableType) {
-        return receivableType == ReceivableType.POST_DATED_CHECK;
-    }
+  @Override
+  public boolean supports(ReceivableType receivableType) {
+    return receivableType == ReceivableType.POST_DATED_CHECK;
+  }
 
-    @Override
-    public Rate spread() {
-        return SPREAD;
-    }
+  @Override
+  public Rate spread() {
+    return SPREAD;
+  }
 }
